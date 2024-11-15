@@ -367,7 +367,7 @@
 
         <div class="content">
             <h1>Add Product</h1>
-            <form method="POST" action="{% url 'add_product' %}"  enctype="multipart/form-data">
+            <form method="POST" action="{% url 'add_product' %}"  enctype="multipart/form-data" id="image-form">
                 {% csrf_token %}
                 <div class="form-grid">
                     <div>
@@ -422,6 +422,7 @@
                             <input type="file" class="file-input" id="file-input" name="productImage" multiple accept="image/*">
                             <div id="file-count">0 file(s) selected</div>
                             <div id="preview-container" class="preview-container"></div>
+                            <div id="error-message" style="color: red; display: none;">Please select at least 3 images.</div>
                          </div>
                     
                         <!-- Hidden input to store selected files -->
@@ -605,6 +606,22 @@
             });
             hiddenFileInput.files = dataTransfer.files;
         }
+        document.addEventListener('DOMContentLoaded', function () {
+            const submitButton = document.getElementById('submit-button');
+            const errorMessage = document.getElementById('error-message');
+            const imageForm = document.getElementById('image-form');
+        
+            submitButton.addEventListener('click', function (e) {
+                if (selectedFiles.length < 3) {
+                    e.preventDefault(); // Prevent form submission
+                    errorMessage.textContent = "Please select at least 3 images.";
+                    errorMessage.style.display = 'block';
+                } else {
+                    errorMessage.style.display = 'none';
+                    imageForm.submit(); // Allow form submission
+                }
+            });
+        });
     </script>
 </body>
 </html>

@@ -15,20 +15,18 @@ from core.forms import RegisterForm
 
 class RegisterView(View):
     def get(self, request):
-        # Render the registration form
         form = RegisterForm()
         return render(request, 'register.html', {'form': form})
 
     def post(self, request):
         form = RegisterForm(request.POST)
         if form.is_valid():
-            # Get the validated data from the form
+
             email = form.cleaned_data['email']
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             password = form.cleaned_data['password']
 
-            # Save user data temporarily in session
             request.session['user_data'] = {
                 'email': email,
                 'first_name': first_name,
@@ -36,21 +34,17 @@ class RegisterView(View):
                 'password': password
             }
 
-            # Generate and send OTP
             self.generate_and_send_otp(email, request)
 
-            # Redirect to OTP verification page
             return redirect('verifyotp')
 
-        # If the form is invalid, re-render with errors
         return render(request, 'register.html', {'form': form})
 
     def generate_and_send_otp(self, email, request):
-        otp = randint(100000, 999999)  # Generate a random 6-digit OTP
+        otp = randint(100000, 999999)  
         request.session['otp'] = otp
         request.session['otp_generated_at'] = timezone.now().isoformat()
 
-        # Send the OTP to the user's email
         send_mail(
             'Your OTP Code',
             f'Your OTP is {otp}. It is valid for 5 minutes.',
@@ -62,7 +56,6 @@ class RegisterView(View):
 
 class VerifyOTPView(View):
     def get(self, request):
-        # Render the OTP verification form
         return render(request, 'verify_otp.html')
 
     def post(self, request):
@@ -87,7 +80,6 @@ class VerifyOTPView(View):
             # Validate OTP within 5 minutes
             if timezone.now() <= expiration_time:
                 if str(stored_otp) == otp_entered:
-                    # OTP is valid; create and save the user
                     user_data = request.session.pop('user_data')
                     user = Users.objects.create_user(
                         email=user_data['email'],
@@ -114,12 +106,10 @@ class VerifyOTPView(View):
         return render(request, 'verify_otp.html')
 
     def generate_and_send_otp(self, request):
-        # Generate a new OTP and update the session
         otp = randint(100000, 999999)
         request.session['otp'] = otp
         request.session['otp_generated_at'] = timezone.now().isoformat()
 
-        # Send the new OTP to the user's email
         email = request.session['user_data']['email']
         send_mail(
             'Your OTP Code',
@@ -136,19 +126,16 @@ class HomePageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Add the user to the context if they are authenticated
+
         if self.request.user.is_authenticated:
             context['user'] = self.request.user
 
-        # Exclude products and variants with is_delete=True
         products = Product.objects.filter(
             is_delete=True,
             variants__is_delete=True,
-            # variants__productimage__is_delete=True  # Check if images are also marked as deleted
+
         ).distinct()
 
-        # Add the products to the context
         context['products'] = products
         return context
 
@@ -163,26 +150,23 @@ class LoginView(View):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Initialize an empty dictionary for error messages
         errors = {}
 
         user = Users.objects.filter(email=email)
         if user:
-        # Validate email
+
             if not email:
                 errors['email'] = "Email cannot be blank."
 
-            # Validate password
             if not password:
                 errors['password'] = "Password cannot be blank."
-            
-            # If there are no field-level errors, attempt authentication
+
             if not errors:
                 user = authenticate(request, email=email, password=password)
                 if user is not None:
                     if user.is_active is True:
                         login(request, user)
-                        return redirect('home')  # Redirect to a dashboard or homepage
+                        return redirect('home') 
                     else:
                         errors['general'] = "Your account is inactive. Please contact support."
                         return redirect('inactive_account_page')
@@ -191,32 +175,23 @@ class LoginView(View):
         else:
             errors['general'] = "This email does not exist"
 
-        # Re-render the form with error messages if authentication fails
         return render(request, self.template_name, {'errors': errors})
 
 class ProductDetailView(View):
     template_name = 'product_detail.html'
 
     def get(self, request, product_id):
-        # Retrieve the specific product using its ID
         product = get_object_or_404(Product, id=product_id)
-
-        # Retrieve all variants and images related to this product
         variants = ProductVariant.objects.filter(product=product, is_delete=True)
-        print(len(variants))
-        
-        # Check if images are linked to ProductVariant or Product
         images = ProductImage.objects.filter(variant__product=product)
 
-        # Fetch related products (from the same category, excluding the current product)
-         # Fetch related products within the same category, excluding the current product
         related_products = (
             Product.objects.filter(
-                Q(category=product.category) & ~Q(id=product.id)
+                Q(category=product.category) & ~Q(id=product.id) & ~Q(is_delete=False)
             )
-            .annotate(min_price=Min('variants__price'))  # Annotate with minimum price
-            .prefetch_related('variants__product_images')  # Prefetch images for variants
-            .distinct()[:4]  # Limit to 4 related products
+            .annotate(min_price=Min('variants__price'))  
+            .prefetch_related('variants__product_images')  
+            .distinct()[:4] 
         )
         
         
@@ -229,11 +204,8 @@ class ProductDetailView(View):
         return render(request, self.template_name, context)
 class CustomLogoutView(View):
    def get(self, request, *args, **kwargs):
-        # Log out the user
         logout(request)
-        
-        # Redirect to the desired page after logout
-        return redirect('home')  # Replace 'home' with your desired redirect URL
+        return redirect('home') 
 
 class ProductListing(View):
     def get(self,request):

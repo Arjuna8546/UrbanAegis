@@ -1,9 +1,10 @@
 from django.urls import path
-from seller.views import AdminLoginView,AdminDashboardView,AdminCoustomersView,ProductListView,ProductCreateView,CategoryView,ProductVariantUpdateView,ChooseDeleteProductOrVariantView,ConfirmDeleteProductOrVariantView,ToggleActiveStatusView,ToggleCategoryStatusView
+from seller.views import AdminLoginView,AdminDashboardView,AdminCoustomersView,ProductListView,ProductCreateView,CategoryView,ProductVariantUpdateView,ChooseDeleteProductOrVariantView,ConfirmDeleteProductOrVariantView,ToggleActiveStatusView,ToggleCategoryStatusView,AdminLogOutView
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
     path('',AdminLoginView.as_view(),name="admin_login"),
+    path('admin/logout/',AdminLogOutView.as_view(),name="admin_logout"),
     path('dashboard/',AdminDashboardView.as_view(),name="admin_dashboard"),
     path('coustomers/',AdminCoustomersView.as_view(),name="coustomers"),
     path('product/',ProductListView.as_view(),name="product"),

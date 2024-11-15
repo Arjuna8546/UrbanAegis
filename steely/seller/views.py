@@ -1,6 +1,6 @@
 from django.db.models import Q, Exists, OuterRef
 from django.views import View
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.views.generic import ListView
@@ -15,6 +15,8 @@ from cloudinary.exceptions import Error
 from django.db import transaction
 import logging
 from seller.forms import AdminLoginForm
+from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
 
 class AdminLoginView(View):
     template_name = 'admin_login.html'  
@@ -36,14 +38,25 @@ class AdminLoginView(View):
                 form.add_error(None, "Invalid email or password.")
             
         return render(request, self.template_name, {'form': form})
+
+class AdminLogOutView(View):  
+    def get(self, request):
+        logout(request)
+        return redirect('admin_login')
+
                       
 class AdminDashboardView(View):
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
     def get(self, request):
         return render(request, 'admin_dashboard.html')
 class AdminCoustomersView(ListView):
     model = Users
     template_name = 'coustomers.html'
     context_object_name = 'users'
+
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         # Retrieve only specific fields to optimize the query
@@ -66,8 +79,11 @@ class ProductListView(ListView):
     template_name = 'product.html'
     context_object_name = 'variants'
 
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
-        # Exclude ProductVariant with is_delete=True and related Product with is_delete=True
         return ProductVariant.objects.filter(
             is_delete=True,
             product__is_delete=True
@@ -78,6 +94,10 @@ logger = logging.getLogger(__name__)
 class ProductCreateView(View):
     template_name = 'add_product.html'
 
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         categories = Category.objects.filter(is_active=True)
         return render(request, self.template_name, {'categories': categories})
@@ -85,7 +105,6 @@ class ProductCreateView(View):
     def post(self, request, *args, **kwargs):
         with transaction.atomic():
             try:
-                # Extract product data from the form
                 title = request.POST.get('title')
                 description = request.POST.get('description')
                 category_id = request.POST.get('category')
@@ -93,7 +112,6 @@ class ProductCreateView(View):
                 product = Product.objects.filter(title=title).first()
 
                 if not product:
-                    # If product doesn't exist, create it
                     product = Product.objects.create(
                         title=title,
                         description=description,
@@ -102,7 +120,7 @@ class ProductCreateView(View):
                     
                 else:
                     pass
-                # Extract variant data from the form
+
                 sku = request.POST.get('sku')
                 price = request.POST.get('price')
                 is_in_stock = request.POST.get('stock') == 'in-stock'
@@ -110,7 +128,7 @@ class ProductCreateView(View):
                 color = request.POST.get('color')
                 size = request.POST.get('size')
 
-                # Create the product variant
+
                 variant = ProductVariant.objects.create(
                     product=product,
                     sku=sku,
@@ -121,14 +139,14 @@ class ProductCreateView(View):
                     available_quantity=quantity
                 )
 
-                # Handle multiple image uploads
+
                 images = request.FILES.getlist('productImage')
                 print(len(images))
                 
 
-                image_urls = []  # List to store uploaded image URLs
+                image_urls = []  
 
-                # Iterate through each uploaded image and upload to Cloudinary
+
                 for image in images[1:]:
                     try:
                         # Upload image to Cloudinary and get the URL
@@ -136,7 +154,7 @@ class ProductCreateView(View):
                         image_url = upload_result['secure_url']
                         image_urls.append(image_url)
 
-                        # Save each image URL to the ProductImage model
+
                         ProductImage.objects.create(
                             variant=variant,
                             image_url=image_url
@@ -147,7 +165,6 @@ class ProductCreateView(View):
                         logger.error(f"Failed to upload image {image.name}: {str(e)}")
                         messages.warning(request, f"Failed to upload image {image.name}: {str(e)}")
 
-                # If no images were uploaded successfully
                 if not image_urls:
                     logger.warning("No images were uploaded.")
                     messages.warning(request, "No images were uploaded.")
@@ -155,30 +172,33 @@ class ProductCreateView(View):
                     logger.info(f"Total images uploaded: {len(image_urls)}")
 
                 messages.success(request, "Product and images added successfully!")
-                return redirect('product')  # Redirect to product list page
+                return redirect('product')  
 
             except Exception as e:
-                # In case of any error, rollback the transaction and show error message
+
                 transaction.set_rollback(True)
                 logger.error(f"An error occurred while creating product: {str(e)}")
                 messages.error(request, f"An error occurred: {str(e)}")
-                return redirect('add_product')  # Redirect back to the add product page
+                return redirect('add_product')  
 
 
 
 
 class CategoryView(View):
+    
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get(self, request, *args, **kwargs):
-        # Handle GET request to display the form and list existing categories
         categories = Category.objects.all()
         return render(request, 'categorie.html', {'categories': categories})
 
     def post(self, request, *args, **kwargs):
-        # Handle POST request to add a new category
         category_name = request.POST.get('categoryName')
         category_status = request.POST.get('categoryStatus') == 'on'  # Checkbox will send 'on' if checked
 
-        # Save the category to the database
+  
         new_category = Category.objects.create(
             name=category_name,
             is_active=category_status
@@ -186,14 +206,13 @@ class CategoryView(View):
 
         messages.success(request, f"Category '{new_category.name}' has been added successfully.")
 
-        # Redirect to the same page after the category is added
+
         return redirect('categorie')
 
 
     
 class ToggleCategoryStatusView(View):
     def post(self, request, category_id):
-        # Toggle the category's status
         category = Category.objects.get(id=category_id)
         category.is_active = not category.is_active
         category.save()
@@ -207,12 +226,15 @@ class ToggleCategoryStatusView(View):
 class ProductVariantUpdateView(UpdateView):
     template_name = 'update_product_variant.html'
     model = ProductVariant
-    fields = ['sku', 'stock_status', 'price', 'available_quantity', 'color', 'size']  # Exclude image field, we'll handle it separately
+    fields = ['sku', 'stock_status', 'price', 'available_quantity', 'color', 'size']  
+
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get active categories for the select field
         active_categories = Category.objects.filter(is_active=True)
         context['active_categories'] = active_categories
         
@@ -220,9 +242,8 @@ class ProductVariantUpdateView(UpdateView):
 
     def post(self, request, *args, **kwargs):
         product_variant = get_object_or_404(ProductVariant, id=kwargs['pk'])
-        product = product_variant.product  # Access the related Product instance
+        product = product_variant.product  
         
-        # Update fields for the Product model only if provided in the request data
         if 'title' in request.POST and request.POST['title']:
             product.title = request.POST['title']
         if 'description' in request.POST and request.POST['description']:
@@ -230,14 +251,16 @@ class ProductVariantUpdateView(UpdateView):
         if 'category' in request.POST and request.POST['category']:
             product.category_id = request.POST['category']
         
-        # Save changes to the Product model
         product.save()
 
-        # Update fields for the ProductVariant model only if provided in the request data
+
         if 'sku' in request.POST and request.POST['sku']:
             product_variant.sku = request.POST['sku']
-        if 'stock' in request.POST:
-            product_variant.stock_status = True if request.POST['stock'] == 'in-stock' else False
+        stock_status = request.POST.get('stock')
+        if stock_status == 'in-stock':
+            product_variant.stock_status = True
+        elif stock_status == 'out-of-stock':
+            product_variant.stock_status = False
         if 'price' in request.POST and request.POST['price']:
             product_variant.price = request.POST['price']
         if 'quantity' in request.POST and request.POST['quantity']:
@@ -247,20 +270,16 @@ class ProductVariantUpdateView(UpdateView):
         if 'size' in request.POST and request.POST['size']:
             product_variant.size = request.POST['size']
 
-        # Handle file upload for multiple product images
         if 'productImage' in request.FILES:
             images = request.FILES.getlist('productImage')  # Multiple image files
 
             # Delete existing product images before adding new ones
-            product_variant.product_images.all().delete()  # Remove previous images
+            product_variant.product_images.all().delete()  
 
             for image in images:
                 try:
-                    # Upload image to Cloudinary
                     upload_result = upload(image)
                     image_url = upload_result['secure_url']
-
-                    # Save each image URL to the database
                     ProductImage.objects.create(
                         variant=product_variant,
                         image_url=image_url
@@ -268,16 +287,20 @@ class ProductVariantUpdateView(UpdateView):
                 except Exception as e:
                     messages.warning(request, f"Failed to upload image {image.name}: {str(e)}")
         
-        # Save changes to the ProductVariant model
         product_variant.save()
 
         messages.warning(request, "Product and variant updated successfully!")
         return redirect(reverse_lazy('product'))
 
 class ChooseDeleteProductOrVariantView(View):
+    
+    @method_decorator(user_passes_test(lambda user: user.is_authenticated and user.is_superuser, login_url='admin_login'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get(self, request, variant_id):
         variant = get_object_or_404(ProductVariant, id=variant_id)
-        product = variant.product  # Get the related product
+        product = variant.product  
         return render(request, 'choose_delete_product_or_variant.html', {
             'variant': variant,
             'product': product
@@ -285,12 +308,10 @@ class ChooseDeleteProductOrVariantView(View):
 
 class ConfirmDeleteProductOrVariantView(View):
     def post(self, request, variant_id, entity_type):
-        # Get the specific ProductVariant by its ID
         variant = get_object_or_404(ProductVariant, id=variant_id)
-        product = variant.product  # Access the related Product instance
+        product = variant.product  
 
         if entity_type == "product":
-            # Soft delete all variants and images associated with the product
             ProductVariant.objects.filter(product=product).update(is_delete=False)
             ProductImage.objects.filter(variant__product=product).update(is_delete=False)
             product.is_delete = False
@@ -299,7 +320,6 @@ class ConfirmDeleteProductOrVariantView(View):
             messages.error(request, f"Product '{product.title}' and all associated variants and images have been deleted successfully.")
 
         elif entity_type == "variant":
-            # Soft delete only the specific variant and its images
             variant.is_delete = False
             variant.save()
             ProductImage.objects.filter(variant=variant).update(is_delete=False)
