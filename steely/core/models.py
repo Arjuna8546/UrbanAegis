@@ -50,7 +50,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
-    # Any other fields for Category
+
 
     def __str__(self):
         return self.name
@@ -70,7 +70,6 @@ class ProductVariant(models.Model):
     color = models.CharField(max_length=50)
     size = models.CharField(max_length=5, choices=[('S', 'Small'), ('M', 'Medium'), ('L', 'Large'), ('XL', 'Extra Large'), ('XXL', 'Double Extra Large')])
     available_quantity = models.PositiveIntegerField()
-    # product_image = CloudinaryField('image', blank=True, null=True)
     stock_status = models.BooleanField(default=True)
     sku = models.CharField(max_length=100, unique=True,default="default")
     is_delete = models.BooleanField(default=True)
