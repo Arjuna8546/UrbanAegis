@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}product{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+{% block content %}
+
+    <div class="container">
+        <div class="product-grid">
+            <div class="product-gallery">
+                <div class="main-image">
+                    {% if images %}
+                        <img src="{{ images.0.image_url }}" alt="{{ product.title }}" id="mainImage">
+                    {% else %}
+                        <img src="/static/images/placeholder.png" alt="No Image Available" id="mainImage">
+                    {% endif %}
+                </div>
+                
+                <div class="thumbnail-grid">
+                    {% if images %}
+                        {% for image in images %}
+                        <div class="thumbnail" onclick="changeImage('{{ image.image_url }}')">
+                            <img src="{{ image.image_url }}" alt="{{ product.title }} - View {{ forloop.counter }}">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No images available for this product.</p>
+                    {% endif %}
+                </div>
+              </div>
+              
+              <div class="preview-overlay">
+                <img class="preview-image" src="" alt="Zoomed Preview">
+                <span class="preview-close" onclick="closePreview()">&times;</span>
+              </div>
+            
+
+            <div class="product-details">
+                <h1>{{ product.title|upper }}</h1>
+                <div class="rating">
+                    <div class="stars">★★★★★</div>
+                    <span class="review-count">(12 reviews)</span>
+                </div>
+                <div class="price">₹{{ variants.0.price }}</div>
+                
+                <form class="product-options" method="post" action="#">
+                    {% csrf_token %}
+                    <div>
+                        <label for="color">COLOR</label>
+                        <select id="color" name="color" required>
+                            <option value="">Select color</option>
+                            {% for color in distinct_colors %}
+                            <option value="{{ color }}">{{ color }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="size">SIZE</label>
+                        <select id="size" name="size" required>
+                            <option value="">Select size</option>
+                            {% for size in distinct_sizes %}
+                            <option value="{{ size.size }}">{{ size.size|capfirst }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="quantity">QUANTITY</label>
+                        <select id="quantity" name="quantity">
+                            {% for i in "12345" %}
+                            <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="add-to-cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        ADD TO CART
+                    </button>
+                </form>
+
+                <div class="product-info">
+                    <div class="info-section">
+                        <h3>Description</h3>
+                        <p>{{ product.description }}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Available Variants</h3>
+                        {% if variants %}
+                            <ul>
+                                {% for variant in variants %}
+                                <li class="variant-details">
+                                    <p><strong>SKU:</strong> {{ variant.sku }}</p>
+                                    <p><strong>Price:</strong> ₹{{ variant.price }}</p>
+                                    <p><strong>Color:</strong> {{ variant.color }}</p>
+                                    <p><strong>Size:</strong> {{ variant.get_size_display }}</p>
+                                    <p>
+                                        <strong>In Stock:</strong> 
+                                        <span class="stock-status {% if variant.stock_status %}in-stock{% else %}out-of-stock{% endif %}">
+                                            {% if variant.stock_status %}Yes{% else %}No{% endif %}
+                                        </span>
+                                    </p>
+                                    <p><strong>Available Quantity:</strong> {{ variant.available_quantity }}</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No variants available for this product.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>SHIPPING</h3>
+                        <ul>
+                            <li>Free Shipping on orders over ₹1000</li>
+                            <li>30-Day Returns for unworn items</li>
+                            <li>Secure Checkout with SSL encryption</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="reviews-container">
+        <div class="reviews-header">
+            <div class="overall-rating">
+                <div class="rating-large">
+                    <span class="star">★★★★★</span>
+                    4.91 out of 5
+                </div>
+                <div class="rating-subtitle">Based on 152 reviews</div>
+            </div>
+            <div class="rating-bars">
+                <div class="rating-bar-row">
+                    <div class="stars">★★★★★</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 95%;"></div>
+                    </div>
+                    <div class="rating-count">143</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★★★☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 5%;"></div>
+                    </div>
+                    <div class="rating-count">9</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★★☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★☆☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★☆☆☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+            </div>
+            <button class="write-review">Write a review</button>
+        </div>
+
+
+        <div class="reviews-list">
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar"></div>
+                        <div>
+                            <div>AM</div>
+                            <span class="star">★★★★★</span>
+                        </div>
+                    </div>
+                    <div class="review-date">12/19/2023</div>
+                </div>
+                <div class="review-content">
+                    absolutely freakin beautiful! matches with my tattoo aswell! 🧡
+                </div>
+            </div>
+
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar"></div>
+                        <div>
+                            <div>Kristalynne! <span class="verified-badge">Verified</span></div>
+                            <span class="star">★★★★★</span>
+                        </div>
+                    </div>
+                    <div class="review-date">12/18/2023</div>
+                </div>
+                <div class="review-content">
+                    always wanted the berserk pendant, ngl its made perfect 🧡
+                </div>
+                <img src="/placeholder.svg?height=100&width=100" alt="Review image" class="review-image">
+            </div>
+        </div>
+    </div>
+
+        <br>
+        <br>
+
+        <div class="rps-slider">
+            <button class="rps-nav rps-prev" aria-label="Previous product">&lt;</button>
+            <div class="rps-track">
+                {% for related_product in related_products %}
+                <div class="rps-card">
+                    <div class="rps-image">
+                        {% with related_product.variants.first as variant %}
+                            {% if variant and related_product.product_images.first %}
+                                <img src="{{ related_product.product_images.first.image_url }}" alt="{{ related_product.title }}" class="rps-img rps-img-main">
+                            {% else %}
+                                <img src="{% static 'images/default-image.jpg' %}" alt="No Image Available" class="rps-img rps-img-main">
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <a href="{% url 'product_detail' related_product.id %}" class="rp-button">
+                        <div class="rps-info">
+                            <h3 class="rps-title">{{ related_product.title }}</h3>
+                            <p class="rps-material">
+                                {% with related_product.variants.first as variant %}
+                                    {% if variant and variant.color %}
+                                        {{ variant.color }}
+                                    {% else %}
+                                        S. Steel
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                            <div class="rps-price">
+                                <span class="rps-current">From ₹{{ related_product.min_price }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="rps-nav rps-next" aria-label="Next product">&gt;</button>
+        </div>
+        
+        
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const thumbnails = document.querySelectorAll('.thumbnail img');
+    const mainImage = document.querySelector('.main-image img');
+    const previewOverlay = document.querySelector('.preview-overlay');
+    const previewImage = document.querySelector('.preview-image');
+    const previewClose = document.querySelector('.preview-close');
+    let isZoomed = false;
+    let startX, startY, translateX = 0, translateY = 0;
+    
+    // Function to change the main image
+    function changeImage(src) {
+        mainImage.src = src;
+        resetZoom();
+    }
+    
+    // Handle thumbnail clicks to change the main image
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            mainImage.src = thumb.src;
+            resetZoom();
+        });
+    });
+    
+    // Toggle fullscreen preview on main image click
+    mainImage.addEventListener('click', () => {
+        previewImage.src = mainImage.src;
+        previewOverlay.classList.add('active');
+        resetZoom();
+    });
+    
+    // Close preview overlay
+    previewOverlay.addEventListener('click', (e) => {
+        if (e.target === previewOverlay || e.target === previewClose) {
+            closePreview();
+        }
+    });
+    
+    // Zoom on preview image when clicked
+    previewImage.addEventListener('click', toggleZoom);
+    
+    function toggleZoom(e) {
+        if (!isZoomed) {
+            isZoomed = true;
+            previewImage.style.transform = 'scale(2)';
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            previewImage.style.cursor = 'grab';
+        } else {
+            resetZoom();
+        }
+    }
+    
+    function startDrag(e) {
+        if (!isZoomed) return;
+        e.preventDefault();
+        startX = (e.clientX || e.touches[0].clientX) - translateX;
+        startY = (e.clientY || e.touches[0].clientY) - translateY;
+        previewImage.style.cursor = 'grabbing';
+    }
+    
+    function drag(e) {
+        if (!isZoomed) return;
+        e.preventDefault();
+        const x = (e.clientX || e.touches[0].clientX) - startX;
+        const y = (e.clientY || e.touches[0].clientY) - startY;
+        translateX = Math.max(Math.min(x, previewImage.width / 2), -previewImage.width / 2);
+        translateY = Math.max(Math.min(y, previewImage.height / 2), -previewImage.height / 2);
+        previewImage.style.transform = `scale(2) translate(${translateX}px, ${translateY}px)`;
+    }
+    
+    function endDrag() {
+        if (isZoomed) previewImage.style.cursor = 'grab';
+    }
+    
+    function resetZoom() {
+        isZoomed = false;
+        translateX = 0;
+        translateY = 0;
+        previewImage.style.transform = 'scale(1) translate(0, 0)';
+        previewImage.style.cursor = 'zoom-in';
+    }
+    
+    function closePreview() {
+        previewOverlay.classList.remove('active');
+        resetZoom();
+    }
+    
+    // Event listeners for dragging
+    previewImage.addEventListener('mousedown', startDrag);
+    previewImage.addEventListener('mousemove', drag);
+    previewImage.addEventListener('mouseup', endDrag);
+    previewImage.addEventListener('mouseleave', endDrag);
+    
+    // Touch events for mobile devices
+    previewImage.addEventListener('touchstart', startDrag);
+    previewImage.addEventListener('touchmove', drag);
+    previewImage.addEventListener('touchend', endDrag);
+    
+</script>
+{% endblock %}

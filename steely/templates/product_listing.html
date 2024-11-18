@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Listing</title>
+    <style>
+        /* CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .view-buttons button, .sort-select, .filter-button {
+            padding: 8px 12px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .view-buttons button.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .product-card {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .product-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+        .image-nav button {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+        .image-nav button.active {
+            background-color: #fff;
+        }
+        .product-info {
+            padding: 15px;
+        }
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-material {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .filter-sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        .filter-sidebar.open {
+            right: 0;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        .filter-section h3 {
+            margin-bottom: 10px;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .filter-option input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="view-buttons">
+                <button id="gridView" class="active">Grid</button>
+                <button id="listView">List</button>
+            </div>
+            <div class="product-count">9 PRODUCTS</div>
+            <div class="sort-filter">
+                <select class="sort-select">
+                    <option value="featured">Featured</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="newest">Newest</option>
+                </select>
+                <button class="filter-button">Filters</button>
+            </div>
+        </div>
+        <div id="productContainer" class="product-grid"></div>
+    </div>
+
+    <div class="filter-sidebar">
+        <h2>Filters</h2>
+        <div class="filter-section">
+            <h3>Material</h3>
+            <div class="filter-option">
+                <input type="radio" id="material-all" name="material" value="all" checked>
+                <label for="material-all">All</label>
+            </div>
+            <div class="filter-option">
+                <input type="radio" id="material-silver" name="material" value="silver">
+                <label for="material-silver">Sterling Silver</label>
+            </div>
+            <div class="filter-option">
+                <input type="radio" id="material-steel" name="material" value="steel">
+                <label for="material-steel">Stainless Steel</label>
+            </div>
+        </div>
+        <div class="filter-section">
+            <h3>Price Range</h3>
+            <div class="filter-option">
+                <input type="radio" id="price-all" name="price" value="all" checked>
+                <label for="price-all">All</label>
+            </div>
+            <div class="filter-option">
+                <input type="radio" id="price-under-500" name="price" value="under-500">
+                <label for="price-under-500">Under ₹500</label>
+            </div>
+            <div class="filter-option">
+                <input type="radio" id="price-500-1000" name="price" value="500-1000">
+                <label for="price-500-1000">₹500 - ₹1000</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript code
+        const products = [
+            {
+                id: '1',
+                name: 'Ear Cuff (Sterling Silver)',
+                material: '925 Silver',
+                price: 599.00,
+                images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg']
+            },
+            {
+                id: '2',
+                name: 'Black Bead Hoop',
+                material: 'S. Steel',
+                price: 299.00,
+                images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg']
+            },
+            {
+                id: '3',
+                name: 'Pearl Hoop',
+                material: 'S. Steel',
+                price: 299.00,
+                images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg']
+            },
+            {
+                id: '4',
+                name: 'Seed Cross Hoop',
+                material: 'S. Steel',
+                price: 299.00,
+                images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg']
+            }
+        ];
+
+        const productContainer = document.getElementById('productContainer');
+        const gridViewBtn = document.getElementById('gridView');
+        const listViewBtn = document.getElementById('listView');
+        const filterButton = document.querySelector('.filter-button');
+        const filterSidebar = document.querySelector('.filter-sidebar');
+        const sortSelect = document.querySelector('.sort-select');
+
+        function renderProducts(products, viewMode) {
+            productContainer.innerHTML = '';
+            productContainer.className = viewMode === 'grid' ? 'product-grid' : 'product-list';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-image">
+                        <img src="${product.images[0]}" alt="${product.name}">
+                        <div class="image-nav">
+                            ${product.images.map((_, index) => `
+                                <button class="${index === 0 ? 'active' : ''}" data-index="${index}"></button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-material">${product.material}</div>
+                        <div class="product-price">₹${product.price.toFixed(2)}</div>
+                    </div>
+                `;
+                productContainer.appendChild(productCard);
+            });
+        }
+
+        function toggleView(viewMode) {
+            if (viewMode === 'grid') {
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            } else {
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+            }
+            renderProducts(products, viewMode);
+        }
+
+        gridViewBtn.addEventListener('click', () => toggleView('grid'));
+        listViewBtn.addEventListener('click', () => toggleView('list'));
+
+        filterButton.addEventListener('click', () => {
+            filterSidebar.classList.toggle('open');
+        });
+
+        sortSelect.addEventListener('change', (e) => {
+            const sortValue = e.target.value;
+            let sortedProducts = [...products];
+            
+            switch(sortValue) {
+                case 'price-asc':
+                    sortedProducts.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    sortedProducts.sort((a, b) => b.price - a.price);
+                    break;
+                case 'newest':
+                    // Assuming the current order is the newest
+                    break;
+                default:
+                    // 'featured' - no sorting needed
+                    break;
+            }
+            
+            renderProducts(sortedProducts, productContainer.className.includes('grid') ? 'grid' : 'list');
+        });
+
+        // Initial render
+        renderProducts(products, 'grid');
+    </script>
+</body>
+</html>

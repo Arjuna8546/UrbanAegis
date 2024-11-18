@@ -1,0 +1,78 @@
+{% extends "account_base.html" %}
+
+
+{% block breadcrum %}
+<div class="breadcrumb-path">Urban Angle > My Account > Address</div>
+{% endblock breadcrum %}
+
+{% block body %}
+<body>
+    <div class="am-container">
+        <div class="am-address-grid">
+            <div class="am-address-section">
+                <h2 class="am-heading">Shipping Address</h2>
+                <form>
+                    <div class="am-form-group">
+                        <label class="am-label" for="shipping-street">Street Address</label>
+                        <input class="am-input" type="text" id="shipping-street" placeholder="Street Address">
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            <label class="am-label" for="shipping-city">City</label>
+                            <input class="am-input" type="text" id="shipping-city" placeholder="City">
+                        </div>
+                        <div class="am-form-group">
+                            <label class="am-label" for="shipping-state">State</label>
+                            <input class="am-input" type="text" id="shipping-state" placeholder="State">
+                        </div>
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            <label class="am-label" for="shipping-pincode">Pin Code</label>
+                            <input class="am-input" type="text" id="shipping-pincode" placeholder="Pin Code">
+                        </div>
+                        <div class="am-form-group">
+                            <label class="am-label" for="shipping-country">Country</label>
+                            <input class="am-input" type="text" id="shipping-country" placeholder="Country">
+                        </div>
+                    </div>
+                    <button type="submit" class="am-btn am-btn-primary">Save Changes</button>
+                </form>
+            </div>
+            <div class="am-address-section am-default-address">
+                <h2 class="am-heading">Default Address</h2>
+                <form>
+                    <div class="am-form-group">
+                        <label class="am-label" for="default-street">Street Address</label>
+                        <input class="am-input" type="text" id="default-street" value="2436 Naples Avenue" readonly>
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            <label class="am-label" for="default-city">City</label>
+                            <input class="am-input" type="text" id="default-city" value="Panama City" readonly>
+                        </div>
+                        <div class="am-form-group">
+                            <label class="am-label" for="default-state">State</label>
+                            <input class="am-input" type="text" id="default-state" value="FL" readonly>
+                        </div>
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            <label class="am-label" for="default-pincode">Pin Code</label>
+                            <input class="am-input" type="text" id="default-pincode" value="32405" readonly>
+                        </div>
+                        <div class="am-form-group">
+                            <label class="am-label" for="default-country">Country</label>
+                            <input class="am-input" type="text" id="default-country" value="United States" readonly>
+                        </div>
+                    </div>
+                    <div class="am-form-row">
+                        <button type="button" class="am-btn am-btn-secondary">Edit Address</button>
+                        <button type="button" class="am-btn am-btn-danger">Delete Address</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock body %}

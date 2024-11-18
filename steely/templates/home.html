@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URBAN AEGIS</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">URBAN AEGIS</a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">HOME</a>
+                <a href="/best-sellers">BEST SELLERS</a>
+                <a href="/shop">SHOP</a>
+                <a href="/contact">CONTACT</a>
+            </nav>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'account' %}" class="a">ACCOUNT</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="a">LOGIN</a>
+                {% endif %}
+                <a href="/search" class='a'>SEARCH</a>
+                <a href="/cart" class='a'>CART (0)</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-text">
+                Hi, I'm AEGIS<br>
+                I cook jewellery
+            </div>
+                {% comment %} <img class ="homeimage"src="#" alt="Sonia illustration" > {% endcomment %}
+            
+        </section>
+
+        <section class="categories">
+            <div class="category-item">
+                <img src="{% static 'images/earring_1.webp' %}" alt="Earrings">
+                <div class="category-label">EARRINGS</div>
+            </div>
+            <div class="category-item">
+                <img src="{% static 'images/bracelet_1.webp' %}" alt="Bracelets">
+                <div class="category-label">BRACELETS</div>
+            </div>
+            <div class="category-item">
+                <img src="{% static 'images/chain_1.webp' %}" alt="Chains">
+                <div class="category-label">CHAINS</div>
+            </div>
+            <div class="category-item">
+                <img src="{% static 'images/rings_1.webp' %}" alt="Rings">
+                <div class="category-label">RINGS</div>
+            </div>
+            <div class="category-item">
+                <img src="{% static 'images/pendant_1.webp' %}" alt="Pendants">
+                <div class="category-label">PENDANTS</div>
+            </div>
+            <div class="category-item">
+                <img src="{% static 'images/pearl_1.webp' %}" alt="Pearls">
+                <div class="category-label">PEARLS</div>
+            </div>
+            
+        </section>
+
+        <section class="drip-proof">
+            <h2>DRIP-PROOF STYLE</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>Water & Sweat Proof</h3>
+                    <p>No Discoloration or Tarnishing</p>
+                </div>
+                <div class="feature">
+                    <h3>Hypoallergenic</h3>
+                    <p>No Green Skin</p>
+                </div>
+                <div class="feature">
+                    <h3>Premium Quality</h3>
+                    <p>Built to Last</p>
+                </div>
+            </div>
+        </section>
+
+        
+
+        <section class="product-section">
+            <div class="section-header">
+                <h2>MOST WANTED STUFF</h2>
+                <a href="/most-wanted" class="view-all">View all</a>
+            </div>
+            <div class="product-slider">
+                <button class="nav-btn prev-btn" aria-label="Previous products">&lt;</button>
+                <div class="product-track" id="productTrack">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                {% with product.product_images.all as images %}
+                                {% if images %}
+                                    {% for image in images %}
+                                    <img src="{{ image.image_url }}" alt="{{ product.title }}" class="product-img {% if forloop.first %}active{% endif %}">
+                                    {% endfor %}
+                                    <div class="dot-navigation">
+                                        {% for image in images %}
+                                        <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <img src="{% static 'placeholder.png' %}" alt="No Image Available" class="product-img">
+                                {% endif %}
+                                {% endwith %}
+                            </a>
+                        </div>
+            
+                        <div class="product-info">
+                            <h3>{{ product.title }}</h3>
+                            <p class="material">
+                                {% if product.variants.first.color %}
+                                    {{ product.variants.first.color }}
+                                {% else %}
+                                    Material Not Specified
+                                {% endif %}
+                            </p>
+            
+                            <div class="price">
+                                <span class="current-price">₹ {{ product.variants.first.price }}</span>
+                                {% if product.variants.first.original_price %}
+                                <span class="original-price">₹ {{ product.variants.first.original_price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="nav-btn next-btn" aria-label="Next products">&gt;</button>
+            </div>
+            
+            
+        </section>
+        <section class="product-section">
+            <div class="section-header">
+                <h2>WHAT'S NEW</h2>
+                <a href="/most-wanted" class="view-all">View all</a>
+            </div>
+            <div class="product-slider">
+                <button class="nav-btn prev-btn" aria-label="Previous products">&lt;</button>
+                <div class="product-track" id="productTrack">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                {% if product.product_images.first %}
+                                    <img src="{{ product.product_images.first.image_url }}" alt="{{ product.title }}" class="product-img">
+                                {% else %}
+                                    <img src="{% static 'images/default-image.jpg' %}" alt="No Image Available" class="product-img">
+                                {% endif %}
+                                <div class="dot-navigation">
+                                    {% for image in product.product_images.all %}
+                                    <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                    {% endfor %}
+                                </div>
+                            </a>
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.title }}</h3>
+                            <p class="material">
+                                {% with product.variants.first as variant %}
+                                    {% if variant.color %}
+                                        {{ variant.color }}
+                                    {% else %}
+                                        S. Steel
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                            <div class="price">
+                                {% with product.variants.first as variant %}
+                                    <span class="current-price">₹ {{ variant.price }}</span>
+                                    {% if variant.original_price %}
+                                    <span class="original-price">₹ {{ variant.original_price }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="nav-btn next-btn" aria-label="Next products">&gt;</button>
+            </div>
+        </section>
+        
+        {% comment %} <section class="miso-fam">
+            <h2>MISO FAM</h2>
+            <div class="miso-grid">
+                <div class="miso-item">
+                    <img src="/placeholder.svg" alt="Miso Family">
+                </div>
+                <div class="miso-item">
+                    <img src="/placeholder.svg" alt="Miso Family">
+                </div>
+                <div class="miso-item">
+                    <img src="/placeholder.svg" alt="Miso Family">
+                </div>
+                <div class="miso-item">
+                    <img src="/placeholder.svg" alt="Miso Family">
+                </div>
+            </div>
+        </section> {% endcomment %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>HELP</h3>
+                <div class="footer-links">
+                    <a href="/shipping">Shipping</a>
+                    <a href="/contact">Contact Us</a>
+                    <a href="/returns">Return & Exchange Policy</a>
+                    <a href="/warranty">Warranty</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>MENU</h3>
+                <div class="footer-links">
+                    <a href="/about">About me</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of service</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <div class="footer-logo">URBAN AEGIS</div>
+                <p>© 2024 - URBAN AEGIS JEWELRY</p>
+            </div>
+        </div>
+    </footer>
+    <script src="{% static 'script/home.js' %}"></script>
+
+</body>
+</html>
