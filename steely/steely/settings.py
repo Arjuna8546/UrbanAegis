@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'core',
     'seller',
     'user',
+    'cart',
 
     'django.contrib.sites',    # Required for managing social authentication sites
     'social_django',           # The core social-auth-app-django app

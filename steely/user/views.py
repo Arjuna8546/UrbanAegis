@@ -178,3 +178,4 @@ class DeleteAddress(View):
         address.is_deleted=True
         address.save()
         return redirect('addressdetail')
+    

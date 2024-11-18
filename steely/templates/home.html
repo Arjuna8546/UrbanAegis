@@ -24,7 +24,7 @@
                     <a href="{% url 'login' %}" class="a">LOGIN</a>
                 {% endif %}
                 <a href="/search" class='a'>SEARCH</a>
-                <a href="/cart" class='a'>CART (0)</a>
+                <a href="{% url 'addcart' %}" class='a'>CART (0)</a>
             </div>
         </div>
     </header>

@@ -7,6 +7,25 @@
 {% endblock %}
 {% block content %}
 
+    {% if messages %}
+    <ul class="messages" id="message-container">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000); // 2000ms = 2 seconds
+    </script>
+
     <div class="container">
         <div class="product-grid">
             <div class="product-gallery">
@@ -45,27 +64,33 @@
                 </div>
                 <div class="price">₹{{ variants.0.price }}</div>
                 
-                <form class="product-options" method="post" action="#">
+                <form class="product-options" method="post" action="{% url 'addcart' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                
+                    <!-- Color Selector -->
                     <div>
                         <label for="color">COLOR</label>
                         <select id="color" name="color" required>
                             <option value="">Select color</option>
-                            {% for color in distinct_colors %}
-                            <option value="{{ color }}">{{ color }}</option>
+                            {% for variant in variants %}
+                                <option value="{{ variant.color }}" data-sizes="{{ variant.size }}">{{ variant.color }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                
+                    <!-- Size Selector -->
                     <div>
                         <label for="size">SIZE</label>
                         <select id="size" name="size" required>
                             <option value="">Select size</option>
-                            {% for size in distinct_sizes %}
-                            <option value="{{ size.size }}">{{ size.size|capfirst }}</option>
+                            {% for variant in variants %}
+                                <option value="{{ variant.size }}" data-colors="{{ variant.color }}">{{ variant.size }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    
+                
+                    <!-- Quantity -->
                     <div>
                         <label for="quantity">QUANTITY</label>
                         <select id="quantity" name="quantity">
@@ -74,6 +99,7 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
                     <button type="submit" class="add-to-cart">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="9" cy="21" r="1"></circle>
@@ -354,6 +380,56 @@
     previewImage.addEventListener('touchstart', startDrag);
     previewImage.addEventListener('touchmove', drag);
     previewImage.addEventListener('touchend', endDrag);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const colorSelect = document.getElementById('color');
+        const sizeSelect = document.getElementById('size');
+    
+        // Remove duplicate options in the dropdowns
+        function removeDuplicateOptions(selectElement) {
+            const seenValues = new Set();
+            const options = Array.from(selectElement.options);
+            options.forEach(option => {
+                if (option.value && seenValues.has(option.value)) {
+                    option.remove(); // Remove duplicate option
+                } else {
+                    seenValues.add(option.value);
+                }
+            });
+        }
+    
+        // Update size options based on selected color
+        function updateSizes(selectedColor) {
+            const sizeOptions = Array.from(sizeSelect.options);
+            sizeOptions.forEach(option => {
+                if (option.value === "") return; // Keep the placeholder option
+                const allowedColors = option.getAttribute('data-colors');
+                if (!selectedColor || allowedColors.split(',').includes(selectedColor)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+            sizeSelect.value = ""; // Reset size selection
+        }
+    
+        // Update color options based on selected size
+        
+    
+        // Apply the deduplication on DOM load
+        removeDuplicateOptions(colorSelect);
+        removeDuplicateOptions(sizeSelect);
+    
+        // Event listeners for dropdown changes
+        colorSelect.addEventListener('change', function () {
+            updateSizes(this.value);
+        });
+    
+        sizeSelect.addEventListener('change', function () {
+            updateColors(this.value);
+        });
+    });
+    
     
 </script>
 {% endblock %}

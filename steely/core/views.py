@@ -196,8 +196,8 @@ class ProductDetailView(View):
         )
         
         distinct_colors = variants.values_list('color', flat=True).distinct()
-        distinct_sizes = variants.values('size').distinct()
-        
+        distinct_sizes = variants.values_list('size', flat=True).distinct()
+            
         context = {
             'product': product,
             'variants': variants,

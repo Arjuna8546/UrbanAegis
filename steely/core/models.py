@@ -105,3 +105,23 @@ class UserAddress(models.Model):
     def restore(self):
         self.is_deleted = False
         self.save()
+
+class CartItem(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="cart", null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)  # For guest users
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product_variant = models.ForeignKey('ProductVariant', on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.product} - x{self.quantity}"
+
+    def get_price(self):
+        """Dynamically fetch the price from the product or variant."""
+        if self.product_variant:
+            return self.product_variant.price
+        return self.product.price
+
+    def get_total_price(self):
+        """Calculate the total cost for this cart item."""
+        return self.get_price() * self.quantity

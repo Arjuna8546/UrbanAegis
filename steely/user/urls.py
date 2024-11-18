@@ -7,6 +7,7 @@ urlpatterns = [
     path('addres/detail',AddressDetail.as_view(),name="addressdetail"),
     path('set/addressdefault/<int:address_id>',SetAddressDefault.as_view(),name="set_default_address"),
     path('update/address',UpdateAddress.as_view(),name="updateaddress"),
-    path('address/delete/<int:address_id>',DeleteAddress.as_view(),name="deleteaddress")
+    path('address/delete/<int:address_id>',DeleteAddress.as_view(),name="deleteaddress"),
+    
 
 ]
