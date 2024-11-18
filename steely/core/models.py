@@ -84,3 +84,24 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.variant.sku}"
+    
+class UserAddress(models.Model):
+    user = models.ForeignKey("Users",related_name="addresses", on_delete=models.CASCADE)
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pin_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100)
+    is_default = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)  # Soft delete flag
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    
+    def soft_delete(self):
+        self.is_deleted = True
+        self.save()
+    
+    def restore(self):
+        self.is_deleted = False
+        self.save()
