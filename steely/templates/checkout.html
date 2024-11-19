@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}    <link rel="stylesheet" href="{% static 'css/checkout.css' %}">{% endblock %}
+{% block content %}
+<body>
+    <h1 class="checkout">Checkout</h1>
+    <br>
+    <div class="container">
+        
+        <div class="grid">
+            <div class="left-column space-y-4">
+                <div class="card">
+                    <div class="card-header flex justify-between items-center">
+                        <h2 class="card-title">Order Summary</h2>
+                        <button class="button button-outline button-sm " style="color: rgb(255, 255, 255); background-color: black;" onclick="window.location.href='{% url 'addcart' %}'">Edit</button>
+                    </div>
+                    
+                    <div class="card-content">
+                        <button id="toggleOrderSummary" class="dropdown-button flex items-center justify-between w-full">
+                            <div class="flex items-center gap-2">
+                                <span class="sr-only">Toggle order summary</span>
+                                <span class="font-medium">Order Summary</span>
+                            </div>
+                            
+                        </button>
+                        
+                        <div id="orderSummaryContent" class="dropdown-content active mt-4 space-y-4">
+                            {% for cartitem in cartitems %}
+                            <div class="flex gap-4">
+                                <img src="{{ cartitem.product.product_images.first.image_url }}" alt="Eternal Cycle Pendant" width="80" height="80" class="rounded-md object-cover">
+                                <div>
+                                    <h3 class="font-medium">{{ cartitem.product.title }} - {{ cartitem.product_variant.color }}</h3>
+                                    <p class="text-sm text-muted">Price : ₹{{ cartitem.product_variant.price }}</p>
+                                    <p class="text-sm text-muted">Quantity : {{ cartitem.quantity }}</p>
+                                </div>
+                                
+                            </div>
+                            {% endfor %}
+                            <div class="separator"></div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>{{subtotal}}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Shipping</span>
+                                    {% if total > 500 %}
+                                        <span style="color: #22c55e;">Free</span>
+                                    {% else %}
+                                        50
+                                    {% endif %}
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Tax</span>
+                                    <span>{{tax}}</span>
+                                </div>
+                                <div class="separator"></div>
+                                <div class="flex justify-between font-medium">
+                                    <span>To Pay</span>
+                                    <span>₹{{total}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Apply Coupon</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="flex items-center gap-2">
+                            <input type="text" placeholder="Enter coupon code" class="input flex-grow">
+                            <button class="button button-primary">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Delivery Information</h2>
+                    </div>
+                    <div class="card-content space-y-4">
+                        
+                        <div class="delivery-card">
+                            <div class="delivery-content">
+                                <div class="delivery-header">
+                                    <h2 class="delivery-title">Deliver To</h2>
+                                    <button class="delivery-edit-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                        Click to Edit
+                                    </button>
+                                </div>
+                    
+                                <div class="delivery-user">
+                                    <h3 class="delivery-name">{{user.first_name}} {{user.last_name}}</h3>
+                                    <p class="delivery-email">{{user.email}}</p>
+                                </div>
+                    
+                                <div class="delivery-addresses">
+                                    <div class="address-card">
+                                        {% for address in addresses %}
+                                        <input 
+                                        type="radio" 
+                                        name="address" 
+                                        id="address{{ address.id }}" 
+                                        class="address-radio" 
+                                        value="{{ address.id }}"
+                                        {% if address.is_default %}checked{% endif %}>
+                                        <label for="address1" class="address-label">
+                                            <div class="address-content">
+                                                <p>{{address.street_address}}, {{address.city}}</p>
+                                                <p>{{address.state}}, {{address.country}}, {{address.pin_code}}</p>
+                                            </div>
+                                            <div class="address-select-indicator">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            </div>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Payment Options</h2>
+                    </div>
+                    <div class="card-content space-y-4">
+                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-mobile-alt"></i>
+                                Pay via UPI
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ₹{{total}}
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </button>
+                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal ; background-color: black; color: white;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-credit-card"></i>
+                                Pay via Card
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ₹{{total}}
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </button>
+                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-wallet"></i>
+                                Pay via Wallets
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ₹{{total}}
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </button>
+                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-university"></i>
+                                Pay via Netbanking
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ₹{{total}}
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </button>
+                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-university"></i>
+                                COD
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ₹{{total}}
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggleOrderSummary');
+            const content = document.getElementById('orderSummaryContent');
+            let isExpanded = true;
+
+            toggleBtn.addEventListener('click', function() {
+                isExpanded = !isExpanded;
+                content.classList.toggle('active');
+                toggleBtn.classList.toggle('active');
+                toggleBtn.setAttribute('aria-expanded', isExpanded);
+            });
+        });
+    </script>
+</body>
+{% endblock content %}

@@ -46,9 +46,8 @@ class AddCart(TemplateView):
             # Fetch the product variant based on color and size
             variant = get_object_or_404(ProductVariant, product_id=product_id, color=color, size=size)
 
-            if variant.available_quantity>0:
+            if variant.available_quantity>=quantity:
                     
-                
                 # Check if the user is authenticated
                 if request.user.is_authenticated:
                     # Handle cart for authenticated user

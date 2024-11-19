@@ -16,7 +16,6 @@ body {
     background: rgba(200, 200, 200, 0.5);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding: 10px;
     margin: 10px;
     z-index: 1000;
 }
