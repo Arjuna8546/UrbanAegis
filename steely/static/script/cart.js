@@ -1,16 +1,60 @@
-// Sample cart data
-let cart = [
-    { id: 1, name: "Snake Chain", price: 75.00, color: "Silver", size: "M", quantity: 1, image: "/placeholder.svg" },
-    { id: 2, name: "Essential Chain", price: 22.00, color: "Silver", size: "M", quantity: 1, image: "/placeholder.svg" }
-];
+function updateQuantity(id, newQuantity) {
+    fetch(`/cart/update/${id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(), // Ensure CSRF token is included
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Find the item and update its quantity in the cart
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity = data.quantity;
+            }
+            renderCart();
+        } else {
+            alert(data.message || 'Failed to update quantity.');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
-// Tax rate
-const taxRate = 0.05;
 
-// Function to render cart items
+function removeItem(id) {
+    fetch(`/cart/remove/${id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(), // Ensure CSRF token is included
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the item from the cart array and re-render
+            cart = cart.filter(item => item.id !== id);
+            renderCart();
+        } else {
+            alert(data.message || 'Failed to remove item.');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
 function renderCart() {
     const cartItemsContainer = document.getElementById('cart-items');
     cartItemsContainer.innerHTML = '';
+
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+        updateOrderSummary();
+        return;
+    }
 
     cart.forEach(item => {
         const itemElement = document.createElement('div');
@@ -22,12 +66,12 @@ function renderCart() {
                     <h2>${item.name}</h2>
                     <span class="item-price">$${item.price.toFixed(2)}</span>
                 </div>
-                <p class="item-meta">Color: ${item.color} — Size: ${item.size}</p>
+                <p class="item-meta">Color: ${item.color || 'N/A'} — Size: ${item.size || 'N/A'}</p>
                 <div class="item-actions">
                     <div class="quantity-selector">
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">−</button>
+                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity} - 1)">−</button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity} + 1)">+</button>
                     </div>
                     <button class="remove-btn" onclick="removeItem(${item.id})">×</button>
                 </div>
@@ -39,22 +83,12 @@ function renderCart() {
     updateOrderSummary();
 }
 
-// Function to update item quantity
-function updateQuantity(id, change) {
-    const item = cart.find(item => item.id === id);
-    if (item) {
-        item.quantity = Math.max(1, item.quantity + change);
-        renderCart();
-    }
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
 }
 
-// Function to remove item from cart
-function removeItem(id) {
-    cart = cart.filter(item => item.id !== id);
-    renderCart();
-}
 
-// Function to update order summary
+
 function updateOrderSummary() {
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const tax = subtotal * taxRate;
@@ -65,18 +99,6 @@ function updateOrderSummary() {
     document.getElementById('total').textContent = `$${total.toFixed(2)}`;
 }
 
-// Function to handle checkout
-function checkout() {
-    alert('Proceeding to checkout...');
-    // Add your checkout logic here
-}
-
-// Function to handle continue shopping
-function continueShopping(event) {
-    event.preventDefault();
-    alert('Continuing shopping...');
-    // Add your continue shopping logic here
-}
-
-// Initial render
-renderCart();
+document.addEventListener('DOMContentLoaded', function () {
+    renderCart(); // Initial render of the cart
+});

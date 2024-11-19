@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/cart.css' %}">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
 {% block content %}
 <br>
 <div class="container">
     <div class="cart-container">
+        {% csrf_token %}
         <h1>Your cart</h1>
         <div id="cart-items" class="cart-items">
+            <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
             <!-- Cart items will be dynamically inserted here -->
         </div>
     </div>
@@ -34,6 +39,12 @@
     </div>
 </div>
 <br>
+{% endblock %}
 
-{% block scripts %}<script src="{% static 'script/cart.js' %}"></script>{% endblock %}
+{% block scripts %}
+<script>
+    let cart = {{ cart_data|safe }};
+    const taxRate = {{ tax_rate }};
+</script>
+<script src="{% static 'script/cart.js' %}"></script> <!-- External JavaScript -->
 {% endblock %}
