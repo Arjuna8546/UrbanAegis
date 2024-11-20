@@ -1,0 +1,73 @@
+{% extends "account_base.html" %}
+{% load static %}
+{% block breadcrum %}
+<div class="breadcrumb-path">Urban Angle > My Account > Orders</div>
+{% endblock breadcrum %}
+{% block body %}
+<body>
+    <div class="od-p-5 od-max-w-6xl od-mx-auto">
+        <h1 class="od-text-2xl od-font-semibold od-mb-6">Orders</h1>
+        {% for order in orders %}
+<div class="od-space-y-4">
+    <div class="od-flex od-items-center od-p-5 od-border od-border-gray-200 od-rounded-lg od-hover:shadow-md od-transition-shadow">
+        <!-- Product Image -->
+        {% if order.fetched_order_items.0.product_variant.product.product_images.exists %}
+            <img src="{{ order.fetched_order_items.0.product_variant.product.product_images.first.image_url|default:'/placeholder.svg?height=80&width=80' }}" 
+                 alt="{{ order.fetched_order_items.0.product_variant.product.title }}" 
+                 class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+        {% else %}
+            <img src="/placeholder.svg?height=80&width=80" alt="Placeholder" class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+        {% endif %}
+        
+        <div class="od-flex-1">
+            <!-- Product Title -->
+            <a href="{% url 'product_detail' order.fetched_order_items.0.product_variant.product.id %}" style="text-decoration: none; color: black;"><h2 class="od-font-semibold od-text-lg od-mb-1">
+                {{ order.fetched_order_items.0.product_variant.product.title }}
+            </h2>
+            
+            <!-- Order Details -->
+            <div class="od-text-sm od-text-gray-600 od-flex od-gap-4 od-mb-2">
+                <span>Ordered On: {{ order.created_at|date:"d M Y" }}</span>
+                <span class="od-font-semibold od-text-black">
+                    ${{ order.total_amount }}
+                </span>
+                
+            </div>
+            
+            <!-- Estimated Delivery -->
+            <div class="od-text-sm od-text-gray-600">
+                Estimated Delivery: {{ order.created_at|date:"d M Y"}}
+            </div>
+            <br>
+            <div class="od-text-sm od-text-gray-600 od-gap-4 od-mb-2" style="border-top: rgb(205, 205, 205) solid .5px; margin-right: 30px;">
+                <span class="od-font-mono" style="color: rgb(0, 133, 0);">Order ID: {{ order.uuid }}</span>
+            </div>
+        </a>
+        </div>
+        <div class="od-flex od-flex-col od-items-end od-gap-2">
+            <!-- Order Status -->
+            <span class="od-px-3 od-py-1 od-rounded-full od-text-xs od-font-medium 
+                         {{ order.status_of_order}}">
+                {{ order.status_of_order|title }}
+            </span>
+            <!-- Track Order Button -->
+            <button class="od-button od-button-outline od-button-sm">Track Order</button>
+        </div>
+    </div>
+</div>
+<br>
+{% empty %}
+<p class="od-text-gray-500">No orders found.</p>
+{% endfor %}
+
+<br>
+
+        <div class="od-flex od-justify-center od-gap-2 od-mt-8">
+            <button class="od-button od-button-outline od-bg-black od-text-white od-hover:bg-gray-800">1</button>
+            <button class="od-button od-button-outline">2</button>
+            <button class="od-button od-button-outline">3</button>
+            <button class="od-button od-button-outline">Next →</button>
+        </div>
+    </div>
+</body>
+{% endblock body %}

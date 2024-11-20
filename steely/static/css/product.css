@@ -699,3 +699,8 @@ select:focus {
 .messages .info {
     background-color: #17a3b881; /* Blue for info */
 }
+#quantityInfo {
+    display: block;
+    margin-top: 3px;
+    font-style: italic;
+}

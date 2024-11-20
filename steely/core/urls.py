@@ -1,5 +1,5 @@
 from django.urls import path
-from core.views import RegisterView, VerifyOTPView,HomePageView, LoginView,ProductDetailView,CustomLogoutView,ProductListing,AccountInactive
+from core.views import RegisterView, VerifyOTPView,HomePageView, LoginView,ProductDetailView,CustomLogoutView,ProductListing,AccountInactive,QuantityView
 
 urlpatterns = [
     
@@ -11,5 +11,6 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('list/',ProductListing.as_view(),name='product_listing'),
     path('inactive/',AccountInactive.as_view(),name="inactive_account_page"),
+    path('quantity/',QuantityView.as_view(),name="quantityview"),
     
 ]

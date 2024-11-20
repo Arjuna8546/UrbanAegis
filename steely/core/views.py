@@ -11,6 +11,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Min
 from core.forms import RegisterForm
+from django.http import JsonResponse
 
 
 class RegisterView(View):
@@ -218,3 +219,19 @@ class ProductListing(View):
 class AccountInactive(TemplateView):
     template_name='inactive.html'   
 
+class QuantityView(View):
+    def get(self, request, *args, **kwargs):
+        # Extract 'product_id', 'color', and 'size' from query parameters
+        product_id = request.GET.get('product_id')
+        color = request.GET.get('color')
+        size = request.GET.get('size')
+
+        if not product_id or not color or not size:
+            return JsonResponse({'error': 'Product ID, color, and size are required'}, status=400)
+
+        # Query the database for the product variant
+        try:
+            variant = get_object_or_404(ProductVariant, product_id=product_id, color=color, size=size)
+            return JsonResponse({'quantity': variant.available_quantity, 'price': variant.price})
+        except ProductVariant.DoesNotExist:
+            return JsonResponse({'quantity': 0, 'price': None})  # Return 0 and None if not found

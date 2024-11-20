@@ -4,10 +4,29 @@
 {% block extra_css %}    <link rel="stylesheet" href="{% static 'css/checkout.css' %}">{% endblock %}
 {% block content %}
 <body>
+    {% if messages %}
+    <ul class="messages" id="message-container">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000); // 2000ms = 2 seconds
+    </script>
     <h1 class="checkout">Checkout</h1>
     <br>
     <div class="container">
-        
+        <form method="post" action="{% url 'addorder' %}">
+            {% csrf_token %}
         <div class="grid">
             <div class="left-column space-y-4">
                 <div class="card">
@@ -15,7 +34,6 @@
                         <h2 class="card-title">Order Summary</h2>
                         <button class="button button-outline button-sm " style="color: rgb(255, 255, 255); background-color: black;" onclick="window.location.href='{% url 'addcart' %}'">Edit</button>
                     </div>
-                    
                     <div class="card-content">
                         <button id="toggleOrderSummary" class="dropdown-button flex items-center justify-between w-full">
                             <div class="flex items-center gap-2">
@@ -88,7 +106,7 @@
                             <div class="delivery-content">
                                 <div class="delivery-header">
                                     <h2 class="delivery-title">Deliver To</h2>
-                                    <button class="delivery-edit-btn">
+                                    <button class="delivery-edit-btn" onclick="window.location.href='{% url 'addressdetail' %}'" >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                                         </svg>
@@ -105,16 +123,19 @@
                                     <div class="address-card">
                                         {% for address in addresses %}
                                         <input 
-                                        type="radio" 
-                                        name="address" 
-                                        id="address{{ address.id }}" 
-                                        class="address-radio" 
-                                        value="{{ address.id }}"
-                                        {% if address.is_default %}checked{% endif %}>
-                                        <label for="address1" class="address-label">
+                                            type="radio" 
+                                            name="address" 
+                                            id="address{{ address.id }}" 
+                                            class="address-radio" 
+                                            value="{{ address.id }}" 
+                                            {% if address.is_default %}checked{% endif %}>
+                                        <label for="address{{ address.id }}" class="address-label">
                                             <div class="address-content">
-                                                <p>{{address.street_address}}, {{address.city}}</p>
-                                                <p>{{address.state}}, {{address.country}}, {{address.pin_code}}</p>
+                                                {% if address.is_default %}
+                                                <span class="badge">Default Address</span>
+                                                {% endif %}
+                                                <p>{{ address.street_address }}, {{ address.city }}</p>
+                                                <p>{{ address.state }}, {{ address.country }}, {{ address.pin_code }}</p>
                                             </div>
                                             <div class="address-select-indicator">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -124,8 +145,8 @@
                                         </label>
                                         {% endfor %}
                                     </div>
-
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -134,66 +155,90 @@
 
             <div class="right-column">
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Payment Options</h2>
-                    </div>
-                    <div class="card-content space-y-4">
-                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-mobile-alt"></i>
-                                Pay via UPI
-                            </div>
-                            <div class="flex items-center gap-2">
-                                ₹{{total}}
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                        </button>
-                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal ; background-color: black; color: white;">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-credit-card"></i>
-                                Pay via Card
-                            </div>
-                            <div class="flex items-center gap-2">
-                                ₹{{total}}
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                        </button>
-                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-wallet"></i>
-                                Pay via Wallets
-                            </div>
-                            <div class="flex items-center gap-2">
-                                ₹{{total}}
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                        </button>
-                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
+                    <h2 class="card-title">Payment Options</h2>
+                        <div class="payment-option payment-option-upi">
+                            <input type="radio" id="upi" name="payment_method" value="upi">
+                            <label for="upi">
+                                <span class="payment-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    Pay via UPI
+                                </span>
+                                <span class="payment-amount">
+                                    ₹{{total}}
+                                    <i class="fas fa-check tick-mark"></i>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="payment-option payment-option-card">
+                            <input type="radio" id="card" name="payment_method" value="card">
+                            <label for="card">
+                                <span class="payment-icon">
+                                    <i class="fas fa-credit-card"></i>
+                                    Pay via Card
+                                </span>
+                                <span class="payment-amount">
+                                    ₹{{total}}
+                                    <i class="fas fa-check tick-mark"></i>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="payment-option payment-option-wallet">
+                            <input type="radio" id="wallet" name="payment_method" value="wallet">
+                            <label for="wallet">
+                                <span class="payment-icon">
+                                    <i class="fas fa-wallet"></i>
+                                    Pay via Wallets
+                                </span>
+                                <span class="payment-amount">
+                                    ₹{{total}}
+                                    <i class="fas fa-check tick-mark"></i>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="payment-option payment-option-netbanking">
+                            <input type="radio" id="netbanking" name="payment_method" value="netbanking">
+                            <label for="netbanking">
+                                <span class="payment-icon">
+                                    <i class="fas fa-university"></i>
+                                    Pay via Netbanking
+                                </span>
+                                <span class="payment-amount">
+                                    ₹{{total}}
+                                    <i class="fas fa-check tick-mark"></i>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="payment-option payment-option-cod">
+                            <input type="radio" id="cod" name="payment_method" value="cod">
+                            <label for="cod">
+                                <span class="payment-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    COD
+                                </span>
+                                <span class="payment-amount">
+                                    ₹{{total}}
+                                    <i class="fas fa-check tick-mark"></i>
+                                </span>
+                            </label>
+                        </div>
+                        <br>
+                        <button type="submit" class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-university"></i>
-                                Pay via Netbanking
+                                PAY NOW
                             </div>
                             <div class="flex items-center gap-2">
                                 ₹{{total}}
                                 <i class="fas fa-chevron-right"></i>
                             </div>
                         </button>
-                        <button class="button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white;">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-university"></i>
-                                COD
-                            </div>
-                            <div class="flex items-center gap-2">
-                                ₹{{total}}
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                        </button>
-                    </div>
                 </div>
                 
             </div>
         </div>
+    </form>
     </div>
+    
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

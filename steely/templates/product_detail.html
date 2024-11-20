@@ -99,6 +99,7 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div id="quantityInfo"></div>
                     <input type="hidden" name="product_id" value="{{ product.id }}">
                     <button type="submit" class="add-to-cart">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -384,6 +385,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         const colorSelect = document.getElementById('color');
         const sizeSelect = document.getElementById('size');
+        const quantitySelect = document.getElementById('quantity');
+        const quantityInfo = document.getElementById('quantityInfo');
+        const priceDiv = document.querySelector('.price');
     
         // Remove duplicate options in the dropdowns
         function removeDuplicateOptions(selectElement) {
@@ -414,7 +418,54 @@
         }
     
         // Update color options based on selected size
+        function updateQuantity() {
+            const selectedColor = colorSelect.value;
+            const selectedSize = sizeSelect.value;
+
+            if (selectedColor && selectedSize) {
+                fetchQuantity(selectedColor, selectedSize);
+            } else {
+                quantityInfo.textContent = '';
+            }
+        }
+
+        function fetchQuantity(color, size) {
+            quantityInfo.textContent = 'Loading...';
+
+            const productId = {{product.id}}; // Example: Replace this with dynamic data as needed.
+
+            // Update API URL to include product_id
+            const apiUrl = `/quantity?product_id=${encodeURIComponent(productId)}&color=${encodeURIComponent(color)}&size=${encodeURIComponent(size)}`;
         
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.quantity > 0) {
+                        quantityInfo.innerHTML = `Available: ${data.quantity}`;
+                        priceDiv.textContent = `₹${data.price}`;
+                    } else {
+                        quantityInfo.textContent = 'Out of Stock';
+                        priceDiv.textContent = 'Price not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    quantityInfo.textContent = 'Error fetching details';
+                    priceDiv.textContent = 'Error fetching price';
+                });
+        }
+
+        //colorSelect.addEventListener('change', updateQuantity);
+        sizeSelect.addEventListener('change', updateQuantity);
+
+        // Initial update
+        updateQuantity();
     
         // Apply the deduplication on DOM load
         removeDuplicateOptions(colorSelect);
@@ -424,10 +475,7 @@
         colorSelect.addEventListener('change', function () {
             updateSizes(this.value);
         });
-    
-        sizeSelect.addEventListener('change', function () {
-            updateColors(this.value);
-        });
+
     });
     
     

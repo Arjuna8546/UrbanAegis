@@ -1,12 +1,13 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView,ListView
 from django.views import View
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from user.forms import PasswordChangeForm,UserAddressForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from core.models import UserAddress
+from core.models import UserAddress,Order,OrderItem
+from django.db.models import Prefetch
 
 class AccountDetail(TemplateView):
     template_name = 'account_detail.html'
@@ -179,3 +180,25 @@ class DeleteAddress(View):
         address.save()
         return redirect('addressdetail')
     
+class OrderListView(ListView):
+    model = Order
+    template_name = 'user_orderdetail.html'  # Update with your template path
+    context_object_name = 'orders'
+    paginate_by = 10  # Optional: Paginate the orders
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Fetch orders for the logged-in user
+        return (
+            Order.objects.filter(user=user)
+            .prefetch_related(
+                Prefetch(
+                    'order_items',
+                    queryset=OrderItem.objects.select_related('product_variant__product'),
+                    to_attr='fetched_order_items'
+                ),
+                'address_id'
+            )
+            .order_by('-created_at')  # Show the latest orders first
+        )

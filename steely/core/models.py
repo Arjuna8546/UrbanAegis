@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import BaseUserManager
 from django.db.models import Min
+import uuid
 
 from cloudinary.models import CloudinaryField
 
@@ -125,3 +126,52 @@ class CartItem(models.Model):
     def get_total_price(self):
         """Calculate the total cost for this cart item."""
         return self.get_price() * self.quantity
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    PAYMENT_CHOICES = [
+        ('credit_card', 'Credit Card'),
+        ('paypal', 'PayPal'),
+        ('cod', 'Cash on Delivery'),
+    ]
+
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="orders")
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # Unique order identifier
+    status_of_order = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    address_id = models.ForeignKey('UserAddress', on_delete=models.CASCADE, related_name="orders_address") # Reference to Address (can link to an Address model)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
+    payment_status = models.CharField(max_length=20, default='pending')  # Could use similar choices for status
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Order {self.uuid} - {self.user.first_name}"
+    
+
+class OrderItem(models.Model):
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name="order_items")  # Links to the specific order
+    product_variant = models.ForeignKey('ProductVariant', on_delete=models.CASCADE, related_name="order_items_product")
+    quantity = models.PositiveIntegerField()  # Number of units of the product
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Price per unit of the product
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Calculated total price for this item
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Tax applied to this item
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"OrderItem: {self.product_id} (Order {self.order.uuid})"
+
+    def save(self, *args, **kwargs):
+        # Automatically calculate the total price as (unit_price * quantity) + tax
+        self.total_price = (self.unit_price * self.quantity) + self.tax
+        super().save(*args, **kwargs)
