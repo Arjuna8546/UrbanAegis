@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect,get_object_or_404
+from django.shortcuts import render,redirect,get_object_or_404,HttpResponse
 from django.views.generic import TemplateView,ListView
 from django.views import View
 from django.core.validators import validate_email
@@ -8,6 +8,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from core.models import UserAddress,Order,OrderItem
 from django.db.models import Prefetch
+from django.http import JsonResponse
+from datetime import timedelta
 
 class AccountDetail(TemplateView):
     template_name = 'account_detail.html'
@@ -202,3 +204,57 @@ class OrderListView(ListView):
             )
             .order_by('-created_at')  # Show the latest orders first
         )
+def order_details_api(request, uuid):
+    order = get_object_or_404(Order, uuid=uuid, user=request.user)
+    order_items = order.order_items.all()  # Fetch all related order items
+
+    # Create a list of order item details
+    items = [
+        {
+            "product_name": item.product_variant.product.title,
+            "product_price": str(item.unit_price),
+            "tax": str(item.tax),
+            "quantity": item.quantity,
+            "color": item.product_variant.color,
+            "size": item.product_variant.size,
+            "description": item.product_variant.product.description,
+            "item_total":str(item.quantity*item.unit_price + item.tax)
+        }
+        for item in order_items
+    ]
+
+    # Add order-level details
+    data = {
+        "uuid": str(order.uuid),
+        "order_date": order.created_at.strftime("%d %b %Y"),
+        "estimated_delivery": (order.created_at + timedelta(days=7)).strftime("%d %b %Y"),
+        "total": order.total_amount,
+        "shipping_address": f"{order.address_id.street_address}, {order.address_id.city}, {order.address_id.state}, {order.address_id.country} Pin:{order.address_id.pin_code}",
+        "status": order.status_of_order,
+        "pay_method": order.payment_method,
+        "pay_status": order.payment_status,
+        "items": items,  # Include the list of order items
+    }
+
+    return JsonResponse(data)
+class CancelOrder(View):
+    def post(self, request, uuid):
+        order = get_object_or_404(Order, uuid=uuid)
+
+        # Example logic for cancelling an order
+        if order.status_of_order not in ['Cancelled', 'Delivered']:
+            order.status_of_order = 'Cancelled'
+            order.save()
+
+            # Return ordered quantity back to product variant
+            order_items = OrderItem.objects.filter(order=order)
+            for item in order_items:
+                product_variant = item.product_variant
+                if product_variant:  # Ensure the product variant exists
+                    product_variant.available_quantity += item.quantity
+                    product_variant.save()
+
+            messages.success(request,"order cannceled susscessfully")
+        else:
+            messages.error(request,"order canncelation failed")
+        return redirect('userorderdetail')

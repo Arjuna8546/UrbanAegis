@@ -6,18 +6,27 @@ from django.contrib import messages
 from django.db import transaction
 from decimal import Decimal
 from django.db.models import F
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class Checkout(View):
+class Checkout(LoginRequiredMixin, View):
+    login_url = '/login/'  # Redirect to the login page if not logged in
+    redirect_field_name = 'home'  # Redirect back to the intended page after login
+
     def get(self, request):
         user = request.user
         cartitems = CartItem.objects.filter(user=user)
+        
+        # Calculate subtotal, tax, and total
         subtotal = sum(item.product_variant.price * item.quantity for item in cartitems)
         tax_rate = Decimal('0.05')
         tax = round(subtotal * tax_rate, 2)
         total = subtotal + tax
+        
+        # Fetch addresses for the user
         addresses = UserAddress.objects.filter(user=user, is_deleted=False)
+        
         context = {
-            "user":user,
+            "user": user,
             "cartitems": cartitems,
             "addresses": addresses,
             "subtotal": subtotal,
@@ -38,6 +47,10 @@ class OrderAdd(View):
         total = subtotal + tax
         payment_method = request.POST.get("payment_method")
         address_id = request.POST.get('address')
+
+        if not payment_method:
+            messages.error(request, "Please select a payment method.")
+            return redirect("checkout")
 
         try:
             address = UserAddress.objects.get(id=address_id, user=user)
@@ -94,7 +107,7 @@ class OrderAdd(View):
             return redirect("checkout")  # Redirect to retry checkout in case of errors
 
         messages.success(request, "Order placed successfully!")
-        return redirect("home")
+        return redirect("addcart")
 
 
         

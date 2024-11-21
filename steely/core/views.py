@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.views import View
-from core.models import Users,Product, ProductVariant, ProductImage
+from core.models import Users,Product, ProductVariant, ProductImage,Category
 from random import randint
 from django.contrib.auth import authenticate, login,logout
 from django.views.generic import TemplateView
@@ -235,3 +235,110 @@ class QuantityView(View):
             return JsonResponse({'quantity': variant.available_quantity, 'price': variant.price})
         except ProductVariant.DoesNotExist:
             return JsonResponse({'quantity': 0, 'price': None})  # Return 0 and None if not found
+        
+class ProductShow(View):
+    def get(self, request):
+        # Filter active products and prefetch related variants and images
+        products = Product.objects.filter(is_delete=True).prefetch_related(
+            'variants', 'product_images'
+        )
+        product_data = []
+
+        for product in products:
+            product_variants = product.variants.filter(is_delete=True)
+            product_images = product.product_images.filter(is_delete=True)
+            # Build product data
+            product_data.append({
+                "id": product.id,
+                "name": product.title,
+                "description": product.description,
+                "category": product.category.name,
+                "variants": [
+                    {
+                        "id": variant.id,
+                        "price": f"${variant.price:.2f}",
+                        "color": variant.color,
+                        "size": variant.size,
+                        "stock_status": variant.stock_status,
+                        "available_quantity": variant.available_quantity,
+                        "sku": variant.sku,
+                    } for variant in product_variants
+                ],
+                "images": [image.image_url for image in product_images],
+            })
+
+        return JsonResponse(product_data, safe=False)
+    
+class ProductListView(View):
+    def get(self, request):
+        # Fetch all active categories
+        active_categories = Category.objects.filter(is_active=True)
+
+        # Pass active categories to the template as context
+        return render(request, "prduct_show.html", {
+            "active_categories": active_categories,
+        })
+
+class FilteredProductList(View):
+    def get(self, request):
+        # Extract query parameters
+        categories = request.GET.get('categories', '').split(',') if request.GET.get('categories') else []
+        colors = request.GET.get('colors', '').split(',') if request.GET.get('colors') else []
+        sizes = request.GET.get('sizes', '').split(',') if request.GET.get('sizes') else []
+        max_price = request.GET.get('price', None)
+        print(categories)
+        # Base queryset
+        products = Product.objects.filter(is_delete=True)
+        
+
+        # Filter by categories
+        if categories:
+            products = products.filter(category__name__in=categories)
+            print(products)
+
+        # Filter by product variants
+        if colors or sizes or max_price:
+            variant_filter = {}
+
+            if colors:
+                variant_filter['color__in'] = colors
+            if sizes:
+                variant_filter['size__in'] = sizes
+            if max_price:
+                try:
+                    variant_filter['price__lte'] = float(max_price)  # Ensure numeric comparison
+                except ValueError:
+                    return JsonResponse({'error': 'Invalid price value'}, status=400)
+
+            product_ids = ProductVariant.objects.filter(
+                is_delete=True,
+                stock_status=True,
+                **variant_filter
+            ).values_list('product_id', flat=True).distinct()
+
+            products = products.filter(id__in=product_ids)
+
+        # Prepare the response
+        data = []
+        for product in products.distinct():
+            variants = product.variants.filter(is_delete=True, stock_status=True)
+            images = product.product_images.filter(is_delete=True).values_list('image_url', flat=True)
+
+            data.append({
+                'id': product.id,
+                'name': product.title,
+                'description': product.description,
+                'category': product.category.name,
+                'variants': [
+                    {
+                        'price': variant.price,
+                        'color': variant.color,
+                        'size': variant.size,
+                    } for variant in variants
+                ],
+                'images': list(images)
+            })
+
+        return JsonResponse(data, safe=False)
+    
+

@@ -13,7 +13,7 @@
             <a href="/" class="logo">URBAN AEGIS</a>
             <nav class="nav-links">
                 <a href="{% url 'home' %}">HOME</a>
-                <a href="/best-sellers">BEST SELLERS</a>
+                <a href="{% url 'productpagelist' %}">BEST SELLERS</a>
                 <a href="/shop">SHOP</a>
                 <a href="/contact">CONTACT</a>
             </nav>
@@ -30,6 +30,7 @@
     </header>
 
     <main>
+        
         <section class="hero">
             <div class="hero-text">
                 Hi, I'm AEGIS<br>
