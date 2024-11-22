@@ -12,6 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Min
 from core.forms import RegisterForm
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 
 class RegisterView(View):
@@ -270,13 +271,21 @@ class ProductShow(View):
         return JsonResponse(product_data, safe=False)
     
 class ProductListView(View):
-    def get(self, request):
+     def get(self, request):
         # Fetch all active categories
         active_categories = Category.objects.filter(is_active=True)
 
-        # Pass active categories to the template as context
+        # Fetch all active products
+        products = Product.objects.filter(is_delete=False).prefetch_related('variants', 'product_images').order_by('-id')
+        # Pagination logic
+        paginator = Paginator(products, 12)  # 16 products per page (3 rows × 4 products)
+        page_number = request.GET.get('page')  # Get the current page number from the query params
+        page_obj = paginator.get_page(page_number)  # Get the products for the current page
+
+        # Pass data to the template
         return render(request, "prduct_show.html", {
             "active_categories": active_categories,
+            "page_obj": page_obj,  # Paginated products
         })
 
 class FilteredProductList(View):
@@ -286,7 +295,7 @@ class FilteredProductList(View):
         colors = request.GET.get('colors', '').split(',') if request.GET.get('colors') else []
         sizes = request.GET.get('sizes', '').split(',') if request.GET.get('sizes') else []
         max_price = request.GET.get('price', None)
-        print(categories)
+        search_query = request.GET.get('search', '').strip()
         # Base queryset
         products = Product.objects.filter(is_delete=True)
         
@@ -294,7 +303,7 @@ class FilteredProductList(View):
         # Filter by categories
         if categories:
             products = products.filter(category__name__in=categories)
-            print(products)
+
 
         # Filter by product variants
         if colors or sizes or max_price:
@@ -317,6 +326,13 @@ class FilteredProductList(View):
             ).values_list('product_id', flat=True).distinct()
 
             products = products.filter(id__in=product_ids)
+
+        if search_query:
+                products = products.filter(
+                    Q(title__icontains=search_query) |
+                    Q(variants__sku__icontains=search_query)
+                ).distinct()
+             
 
         # Prepare the response
         data = []

@@ -1,0 +1,89 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/orderdetail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+    </header>
+    <div class="breadcrumb">
+        Admin > Orders
+    </div>
+    <div class="header1">
+        <h1>Orders</h1>
+        <div class="search-container">
+
+            <input type="text" class="search-input" placeholder="Search orders...">
+        </div>
+        
+        
+    </div>
+    <div class="container">
+        
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Order ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    {% for item in order.order_items.all %}
+                        <tr onclick="window.location.href='{% url 'specific_order_detail' order.id %}'" style="cursor: pointer;">
+                            <td data-label="Image">
+                                <div class="order-image">
+                                    {% with item.product_variant.product.product_images.first as image %}
+                                        {% if image %}
+                                            <img src="{{ image.image_url }}" alt="{{ item.product_variant.product.title }}">
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </td>
+                            
+                            <td data-label="Order">
+                                {{ item.product_variant.product.title }}
+                            </td>
+                            <td data-label="Date">
+                                {{ order.created_at|date:"d M, Y" }}
+                            </td>
+                            <td data-label="Total">
+                                ${{ order.total_amount|floatformat:2 }}
+                            </td>
+                            <td data-label="Status">
+                                <span class="status status_of_order-{{ order.status_of_order|lower }}">
+                                    {{ order.status_of_order }}
+                                </span>
+                            </td>                            
+                            <td data-label="Order ID" style="color: green; font-size: small;">
+                                {{ order.uuid }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            <button>&lt;</button>
+            <button>1</button>
+            <button>2</button>
+            <button>...</button>
+            <button>23</button>
+            <button>24</button>
+            <button>&gt;</button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+    
+{% block scripts %}{% endblock %}
+

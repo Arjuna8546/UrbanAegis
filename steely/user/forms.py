@@ -13,7 +13,7 @@ class PasswordChangeForm(forms.Form):
         widget=forms.PasswordInput(attrs={'id': 'confirm-password'}),
         label="Confirm Password"
     )
-    print(new_password)
+
     
     def clean(self):
         cleaned_data = super().clean()

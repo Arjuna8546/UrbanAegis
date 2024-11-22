@@ -9,8 +9,10 @@
     <div class="header1">
         <button id="filterBtn" class="filter-btn">Filters</button>
         <div class="search-container">
-            <input type="text" placeholder="Search products" class="search-input">
+            <input type="text" id="searchInput" placeholder="Search products" class="search-input">
+            <button id="filterBtn2" class="filter-btn">Search</button>
         </div>
+        
     </div>
     <div id="filterOptions" class="filter-options" style="display: none;">
             <!-- Category Section -->
@@ -49,12 +51,38 @@
                 <input type="range" min="0" max="1000" value="500" class="price-slider" id="priceSlider">
                 <div class="price-display" id="priceDisplay">$500.00</div>
             </div>
-            <button type="submit" class="filter-btn1" style="margin: auto; padding-left: 2rem; padding-right: 2rem;">Filter</button>
+            <button type="submit" class="filter-btn1 filter-btn" style="margin: auto; padding-left: 2rem; padding-right: 2rem;">Filter</button>
     </div>
     <div class="container2">
     <div class="product-grid" id="productGrid"></div>
     <div class="container2">
 </div>
+
+<div class="pagination-container"></div>
+
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li><a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a></li>
+        {% else %}
+            <li><a class="disabled">&laquo; Previous</a></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li><a class="active">{{ num }}</a></li>
+            {% else %}
+                <li><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li><a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a></li>
+        {% else %}
+            <li><a class="disabled">Next &raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
 {% endblock %}
 
 {% block scripts %}

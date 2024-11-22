@@ -1,6 +1,7 @@
 const productGrid = document.getElementById('productGrid');
 const filterBtn = document.getElementById('filterBtn');
 const filterOptions = document.getElementById('filterOptions');
+const searchQuery = document.getElementById('searchInput').value.trim();
 
 // Toggle filter options
 filterBtn.addEventListener('click', () => {
@@ -9,7 +10,7 @@ filterBtn.addEventListener('click', () => {
 
 // Fetch and render products
 function fetchAndRenderProducts() {
-    fetch('/product/list/') // Adjust the endpoint if needed
+    fetch('/product/list/')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch products');
@@ -72,20 +73,29 @@ function renderProducts(products) {
 
         let currentImageIndex = 0;
         let intervalId;
-
+        
+        // Preload images
+        const preloadedImages = product.images.map(imageUrl => {
+            const img = new Image();
+            img.src = imageUrl; // This will preload the image
+            return img;
+        });
+        
+        // Event listener for mouse enter
         productCard.addEventListener('mouseenter', () => {
             intervalId = setInterval(() => {
                 currentImageIndex = (currentImageIndex + 1) % product.images.length;
                 productCard.querySelector('img').src = product.images[currentImageIndex];
             }, 1200);
         });
-
+        
+        // Event listener for mouse leave
         productCard.addEventListener('mouseleave', () => {
             clearInterval(intervalId);
             currentImageIndex = 0;
-            productCard.querySelector('img').src = product.images[0];
+            productCard.querySelector('img').src = product.images[0]; // Reset to the first image
         });
-
+        
         productGrid.appendChild(productCard);
     });
 }
@@ -126,12 +136,15 @@ function getFilterData() {
 
     const price = document.getElementById('priceSlider').value;
 
+    const searchQuery = document.getElementById('searchInput').value.trim(); // Retrieve search input value
+
     // Return the filter data as an object
     return {
         categories: categories.join(','), // Join multiple values with a comma
         colors: colors.join(','),
         sizes: sizes.join(','),
-        price: price
+        price: price,
+        search: searchQuery,
     };
 }
 function fetchAndRenderFilteredProducts(filterData) {
@@ -157,4 +170,16 @@ function fetchAndRenderFilteredProducts(filterData) {
 document.querySelector('.filter-btn1').addEventListener('click', () => {
     const filterData = getFilterData(); // Collect filter data
     fetchAndRenderFilteredProducts(filterData); // Fetch and render filtered products
+});
+
+document.getElementById('filterBtn2').addEventListener('click', () => {
+    const filters =getFilterData();
+    const queryParams = new URLSearchParams(filters).toString();
+
+    fetch(`/product/list/filter?${queryParams}`)
+        .then(response => response.json())
+        .then(products => {
+            renderProducts(products);
+        })
+        .catch(error => console.error('Error fetching filtered products:', error));
 });

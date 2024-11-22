@@ -1,12 +1,11 @@
-from django.db.models import Q, Exists, OuterRef
+from django.db.models import Prefetch
 from django.views import View
 from django.contrib.auth import authenticate, login,logout
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from django.views.generic import ListView
-from django.views.generic import UpdateView
+from django.views.generic import ListView,UpdateView,TemplateView
 from core.models import Users,Category
-from core.models import Product, ProductVariant, Category,ProductImage
+from core.models import Product, ProductVariant, Category,ProductImage,Order,OrderItem
 from django.urls import reverse_lazy
 from django.urls import reverse
 from django.conf import settings
@@ -141,7 +140,6 @@ class ProductCreateView(View):
 
                 # Handle uploaded images (linked to the product)
                 images = request.FILES.getlist('productImages')  # Name the file input `productImages` in the form
-                print(images)
                 image_urls = []
 
                 for image in images:
@@ -171,7 +169,6 @@ class ProductCreateView(View):
 
                 # Parse and save variants
                 variants_json = request.POST.get('variants')
-                print(variants_json)
                 variants = json.loads(variants_json) if variants_json else []
 
                 for variant_data in variants:
@@ -356,8 +353,51 @@ class ConfirmDeleteProductOrVariantView(View):
 
         # Redirect to the product list page
         return redirect(reverse_lazy('product'))
+class OrderDetails(View):
+    def get(self, request):
+        # Optimize query with select_related and prefetch_related
+        orders = Order.objects.prefetch_related(
+            Prefetch(
+                'order_items',
+                queryset=OrderItem.objects.select_related('product_variant__product'),
+            )
+        ).select_related('user')  # Example if customer data is needed
 
+        return render(request, "orders_detail.html", {"orders": orders})
+    
+class SpecificOrderDetail(View):
+    template_name = 'sepcific_order_detail.html'
 
+    def get(self, request, order_id):
+        # Fetch the order
+        order = get_object_or_404(Order, id=order_id)
 
+        # Fetch order items
+        order_items = OrderItem.objects.filter(order=order).select_related(
+            'product_variant__product'
+        )
 
+        # Fetch user and address details
+        user = order.user
+        status_of_order= order.status_of_order
+        address = order.address_id
+
+        # Fetch product and variant details
+        product_variants = [
+            item.product_variant for item in order_items
+        ]
+        products = [
+            variant.product for variant in product_variants
+        ]
+
+        context = {
+            'order': order,
+            'order_items': order_items,
+            'products': products,
+            'product_variants': product_variants,
+            'user': user,
+            'address': address,
+            'status_of_order':status_of_order
+        }
+        return render(request, self.template_name, context)
 

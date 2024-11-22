@@ -14,8 +14,9 @@
 
         body {
             display: flex;
-            background: #f5f5f5;
-            min-height: 100vh;
+            flex-direction: column; /* Ensure the sidebar and header layout is vertical */
+            height: 100vh; /* Full viewport height */
+            overflow: hidden; 
         }
 
         .sidebar {
@@ -24,7 +25,12 @@
             height: 100vh;
             padding: 20px;
             border-right: 1px solid #eee;
-            overflow-y: auto;
+            position: fixed; /* Make the sidebar sticky */
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto; /* Enable scrolling for the sidebar if content exceeds height */
+            z-index: 100; /* Ensure it stays on top */
         }
 
         .nav-item {
@@ -50,8 +56,10 @@
 
         .main-content {
             flex: 1;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
+            margin-left: 250px; /* Offset for sidebar width */
+            margin-top: 60px; /* Offset for header height */
+            overflow: auto; /* Allow scrolling for main content */
         }
 
         .header {
@@ -61,6 +69,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: fixed; /* Make the header sticky */
+            top: 0;
+            right: 0;
+            left: 250px; /* Offset to align with the sidebar width */
+            z-index: 100; /* Ensure it stays on top */
+            height: 60px; /* Fixed height for consistency */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .content {
@@ -71,8 +86,8 @@
 
         .breadcrumb {
             color: #666;
-            padding: 10px 0;
-            margin-bottom: 20px;
+            padding: 20px 0;
+            margin-top: 20px;
         }
 
         .page-title {

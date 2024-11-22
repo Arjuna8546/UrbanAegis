@@ -312,3 +312,49 @@ body {
     font-size: 16px;
     color: #000000;
 }
+.pagination {
+    justify-content: center;
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    background-color: white;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pagination li {
+    border-right: 1px solid #e0e0e0;
+}
+
+.pagination li:last-child {
+    border-right: none;
+}
+
+.pagination a {
+    color: #333;
+    padding: 12px 18px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.pagination a:hover {
+    background-color: #f0f0f0;
+}
+
+.pagination .active {
+    background-color: #000000;
+    color: white;
+}
+
+.pagination .disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .pagination a {
+        padding: 8px 12px;
+    }
+}
