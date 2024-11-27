@@ -1,0 +1,113 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+
+{% block breadcrum %}<div class="breadcrumb-path">Urban Angle > My Account > Wishlist</div>{% endblock breadcrum %}
+{% block body %}
+<body>
+    <div class="od-p-5 od-max-w-6xl od-mx-auto">
+        <h1 class="od-text-2xl od-font-semibold od-mb-6">My Wishlist</h1>
+        {% if messages %}
+        <ul class="messages" id="message-container">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <script>
+        // Automatically hide messages after 2 seconds
+        setTimeout(() => {
+            const messageContainer = document.getElementById('message-container');
+            if (messageContainer) {
+                messageContainer.style.display = 'none';
+            }
+        }, 2000);
+        </script>
+
+        {% for item in wishlists %}
+        <div class="od-space-y-4">
+            <div class="od-flex od-items-center od-p-5 od-border od-border-gray-200 od-rounded-lg od-hover:shadow-md od-transition-shadow">
+                <!-- Product Image -->
+                {% if item.product.product_images.exists %}
+                    <img src="{{ item.product.product_images.first.image_url|default:'/placeholder.svg?height=80&width=80' }}" 
+                         alt="{{ item.product.title }}" 
+                         class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+                {% else %}
+                    <img src="/placeholder.svg?height=80&width=80" alt="Placeholder" class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+                {% endif %}
+                
+                <div class="od-flex-1">
+                    <!-- Product Title -->
+                    <a href="{% url 'product_detail' item.product.id %}" style="text-decoration: none; color: black;">
+                        <h2 class="od-font-semibold od-text-lg od-mb-1">
+                            {{ item.product.title }}
+                        </h2>
+                        
+                        <!-- Product Details -->
+                        <div class="od-text-sm od-text-gray-600 od-flex od-gap-4 od-mb-2">
+                            <span class="od-font-semibold od-text-black">
+                                ${{ item.product.variants.first.price }}
+                            </span>
+                        </div>
+                        
+                        <!-- Product Description -->
+                        <div class="od-text-sm od-text-gray-600">
+                            {{ item.product.description|truncatechars:100 }}
+                        </div>
+                    </a>
+                </div>
+                <div class="od-flex od-flex-col od-items-end od-gap-2">
+                    <!-- Action Buttons -->
+                    {% csrf_token %}
+                        <button class="wishlist-btn {% if item.product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ item.product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                </div>
+            </div>
+        </div>
+        <br>
+        {% empty %}
+        <p class="od-text-gray-500">Your wishlist is empty.</p>
+        {% endfor %}
+    </div>
+<script>
+    function toggleWishlist(productId) {
+        const btn = event.currentTarget;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const formData = new FormData();
+        formData.append('product_id', productId);
+    
+        fetch('/wishlist/toggle/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                btn.classList.toggle('active');
+                // Optional: Show a success message
+                console.log(data.message);
+
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Optional: Show an error message to the user
+        });
+    }
+</script>
+</body>
+{% endblock body %}

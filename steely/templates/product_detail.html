@@ -32,6 +32,12 @@
                 <div class="main-image">
                     {% if images %}
                         <img src="{{ images.0.image_url }}" alt="{{ product.title }}" id="mainImage">
+                        {% csrf_token %}
+                        <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
                     {% else %}
                         <img src="/static/images/placeholder.png" alt="No Image Available" id="mainImage">
                     {% endif %}
@@ -54,6 +60,7 @@
                 <img class="preview-image" src="" alt="Zoomed Preview">
                 <span class="preview-close" onclick="closePreview()">&times;</span>
               </div>
+              
             
 
             <div class="product-details">
@@ -256,10 +263,15 @@
                                 <img src="{% static 'images/default-image.jpg' %}" alt="No Image Available" class="rps-img rps-img-main">
                             {% endif %}
                         {% endwith %}
+                        <button class="wishlist-btn {% if related_product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ related_product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
                     </div>
                     <a href="{% url 'product_detail' related_product.id %}" class="rp-button">
                         <div class="rps-info">
-                            <h3 class="rps-title">{{ related_product.title }}</h3>
+                                <h3>{{ product.title }}</h3>
                             <p class="rps-material">
                                 {% with related_product.variants.first as variant %}
                                     {% if variant and variant.color %}
@@ -477,6 +489,40 @@
         });
 
     });
+
+    function toggleWishlist(productId) {
+        const btn = event.currentTarget;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const formData = new FormData();
+        formData.append('product_id', productId);
+    
+        fetch('/wishlist/toggle/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                btn.classList.toggle('active');
+                // Optional: Show a success message
+                console.log(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Optional: Show an error message to the user
+        });
+    }
+    
     
     
 </script>

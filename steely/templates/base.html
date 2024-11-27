@@ -30,7 +30,7 @@
                     <a href="{% url 'login' %}" class="a">LOGIN</a>
                 {% endif %}
                 <a href="/search" class='a'>SEARCH</a>
-                <a href="{% url 'addcart' %}" class='a'>CART (0)</a>
+                <a href="{% url 'addcart' %}" class='a'>CART</a>
             </div>
         </div>
         <br>
@@ -38,7 +38,7 @@
     <main>
         {% block content %}{% endblock %}
 
-        {% block scripts %}{% endblock %}
+        
     </main>
     <footer class="footer">
         <div class="footer-content">
@@ -65,5 +65,10 @@
             </div>
         </div>
     </footer>
+    {% block scripts %}{% endblock %}
+    {% comment %} razorpaycheckout {% endcomment %}
+    {% comment %} <script src="{% static 'script/checkout.js' %}"></script> {% endcomment %}
+
+
 </body>
 </html>

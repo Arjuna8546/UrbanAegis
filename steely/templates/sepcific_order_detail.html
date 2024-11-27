@@ -13,13 +13,42 @@
     <div class="breadcrumb">
         Admin > Dashboard
     </div>
+    {% if messages %}
+    <ul class="messages" id="message-container">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000); // 2000ms = 2 seconds
+    </script>
     <div class="container">
         <div class="header1">
             <div>
                 <h1>Order Details</h1>
                 <p>Order {{ order.uuid }}</p>
             </div>
-            <span class="badge">{{status_of_order}}</span>
+            <td>
+                <form action="{% url 'update_order_status' order.id %}" method="POST" class="status-form">
+                    {% csrf_token %}
+                    <select name="status_of_order" class="status-dropdown" onchange="this.form.submit()">
+                        <option value="Pending" {% if order.status_of_order == "Pending" %}selected{% endif %}>Pending</option>
+                        <option value="Processing" {% if order.status_of_order == "Processing" %}selected{% endif %}>Processing</option>
+                        <option value="Shipped" {% if order.status_of_order == "Shipped" %}selected{% endif %}>Shipped</option>
+                        <option value="Delivered" {% if order.status_of_order == "Delivered" %}selected{% endif %}>Delivered</option>
+                        <option value="Cancelled" {% if order.status_of_order == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </form>
+            </td>
         </div>
 
         <div class="grid">
@@ -68,6 +97,9 @@
                         <th>Color</th>
                         <th>Quantity</th>
                         <th>Price</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                        
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +116,9 @@
                         <td> {{ item.product_variant.size }}</td>
                         <td> {{ item.product_variant.color }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>${{ item.product_variant.price|floatformat:2 }}</td>
+                        <td>{{ item.unit_price|floatformat:2 }}</td>
+                        <td>{{ item.tax }}</td>
+                        <td>{{ item.total_price }}</td>
                     </tr>
                     {% endfor %}
                    
@@ -117,25 +151,26 @@
                 </h2>
                 <div class="summary-item">
                     <span>Subtotal</span>
-                    <span>$110.00</span>
+                    <span>{{sub_total}}</span>
                 </div>
                 <div class="summary-item">
                     <span>Tax</span>
-                    <span>$9.35</span>
+                    <span>{{total_tax}}</span>
                 </div>
                 <div class="summary-item">
                     <span>Shipping</span>
-                    <span>$5.00</span>
+                    <span>{{shipping_fee}}</span>
                 </div>
                 <div class="summary-item total">
                     <span>Total</span>
-                    <span>$124.35</span>
+                    <span>{{order.total_amount}}</span>
                 </div>
+                
             </div>
         </div>
 
         <div class="footer">
-            <p>Order placed on March 20, 2023 at 14:30:00. For any questions, please contact our support team.</p>
+            
         </div>
     </div>
 

@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/changepassword.css' %}">
 <link rel="stylesheet" href="{% static 'css/address.css' %}">
 <link rel="stylesheet" href="{% static 'css/userorder.css' %}">
+<link rel="stylesheet" href="{% static 'css/wishlist.css' %}">
 
 {% endblock %}
 <body>
@@ -23,7 +24,7 @@
             <div class="sidebar">
                 <ul class="sidebar-menu">
                     <li><a href="{% url 'userorderdetail' %}"><i class="fas fa-shopping-cart"></i> Orders</a></li>
-                    <li><a href="#"><i class="far fa-heart"></i> Wishlist</a></li>
+                    <li><a href="{% url 'wishlistview' %}"><i class="far fa-heart"></i> Wishlist</a></li>
                     <li><a href="{% url 'addressdetail' %}"><i class="fas fa-map-marker-alt"></i> Address</a></li>
                     <li><a href="{% url 'changepassword' %}"><i class="fas fa-lock"></i> Password</a></li>
                     <li><a href="{% url 'account' %}"><i class="far fa-user"></i> Account Detail</a></li>

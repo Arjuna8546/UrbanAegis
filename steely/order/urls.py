@@ -3,5 +3,7 @@ from order.views import *
 
 urlpatterns = [
     path('checkout/',Checkout.as_view(),name="checkout"),
-    path('order/add',OrderAdd.as_view(),name="addorder")
+    path('order/add',OrderAdd.as_view(),name="addorder"),
+    path('apply-coupon/', apply_coupon, name='apply_coupon'),
+    path('remove-coupon/', remove_coupon, name='remove_coupon'),
 ]

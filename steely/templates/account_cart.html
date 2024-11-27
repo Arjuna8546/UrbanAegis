@@ -6,6 +6,24 @@
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    <ul class="messages" id="message-container">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000); // 2000ms = 2 seconds
+    </script>
 <br>
 <div class="container">
     <div class="cart-container">

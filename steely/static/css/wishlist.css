@@ -1,0 +1,94 @@
+
+
+
+
+
+.messages {
+    list-style: none;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.messages li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.messages .success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.messages .error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+/* Wishlist specific styles */
+
+
+.empty-wishlist {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+/* Wishlist button styles */
+.wishlist-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-btn svg {
+    stroke: #333;
+    fill: none;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn.active svg {
+    fill: #ff4444;
+    stroke: #ff4444;
+}
+
+.wishlist-btn:focus {
+    outline: none;
+}
+
+.rps-image {
+    position: relative;
+}
+
+.rps-image .wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+.rps-image .wishlist-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.rps-image .wishlist-btn svg {
+    width: 20px;
+    height: 20px;
+}

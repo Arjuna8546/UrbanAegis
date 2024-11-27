@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.views import View
-from core.models import Users,Product, ProductVariant, ProductImage,Category
+from core.models import Users,Product, ProductVariant, ProductImage,Category,Wishlist
 from random import randint
 from django.contrib.auth import authenticate, login,logout
 from django.views.generic import TemplateView
@@ -13,6 +13,9 @@ from django.db.models import Q, Min
 from core.forms import RegisterForm
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 
 class RegisterView(View):
@@ -131,13 +134,19 @@ class HomePageView(TemplateView):
 
         if self.request.user.is_authenticated:
             context['user'] = self.request.user
+            # Add user wishlist to context
+            context['user_wishlist'] = Wishlist.objects.filter(
+                user=self.request.user
+            ).values_list('product_id', flat=True)
+        else:
+            context['user_wishlist'] = [] 
 
         products = Product.objects.filter(
             is_delete=True,  # Product is not deleted
             variants__is_delete=True,  # At least one associated variant is not deleted
             product_images__is_delete=True  # At least one associated image is not deleted
         ).distinct().prefetch_related('product_images', 'variants')  # Prefetch for efficient queries
-
+        
 
         context['products'] = products
         return context
@@ -187,6 +196,8 @@ class ProductDetailView(View):
         product = get_object_or_404(Product, id=product_id)
         variants = ProductVariant.objects.filter(product=product, is_delete=True)
         images = ProductImage.objects.filter(product=product,is_delete=True)
+        user_wishlist = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True) if request.user.is_authenticated else []
+    
 
         related_products = (
             Product.objects.filter(
@@ -207,6 +218,7 @@ class ProductDetailView(View):
             'related_products': related_products,
             'distinct_colors': distinct_colors,
             'distinct_sizes': distinct_sizes,
+            'user_wishlist': user_wishlist,
         }
         return render(request, self.template_name, context)
 class CustomLogoutView(View):
@@ -356,5 +368,32 @@ class FilteredProductList(View):
             })
 
         return JsonResponse(data, safe=False)
-    
+@csrf_exempt
+@require_POST
+@login_required
+def toggle_wishlist(request):
+    try:
+        product_id = request.POST.get('product_id')
+        print(product_id)
+        if not product_id:
+            return JsonResponse({'status': 'error', 'message': 'Product ID is required'}, status=400)
+        
+        # Fetch the product
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Product does not exist'}, status=404)
+        
+        # Get or create wishlist entry
+        wishlist_entry, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+
+        if created:
+            # Product added to wishlist
+            return JsonResponse({'status': 'success', 'message': 'Product added to your wishlist'})
+        else:
+            # Product removed from wishlist
+            wishlist_entry.delete()
+            return JsonResponse({'status': 'success', 'message': 'Product removed from your wishlist'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': 'Something went wrong'}, status=500)
 

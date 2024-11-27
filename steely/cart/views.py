@@ -14,6 +14,7 @@ class AddCart(TemplateView):
         else:
             session_id = request.session.session_key
             cart_items = CartItem.objects.filter(session_id=session_id)
+        
 
         # Format cart data for frontend
         cart_data = [
@@ -24,7 +25,8 @@ class AddCart(TemplateView):
                 'color': item.product_variant.color if item.product_variant else None,
                 'size': item.product_variant.size if item.product_variant else None,
                 'quantity': item.quantity,
-                'image': item.product.product_images.first().image_url if item.product.product_images.exists() else '/placeholder.svg'
+                'image': item.product.product_images.first().image_url if item.product.product_images.exists() else '/placeholder.svg',
+                'stock': item.product_variant.available_quantity 
 
             }
             for item in cart_items
@@ -47,7 +49,7 @@ class AddCart(TemplateView):
             variant = get_object_or_404(ProductVariant, product_id=product_id, color=color, size=size)
 
             if variant.available_quantity>=quantity:
-                    
+                
                 # Check if the user is authenticated
                 if request.user.is_authenticated:
                     # Handle cart for authenticated user
@@ -132,7 +134,14 @@ def update_cart_item_quantity(request, id):
 
                 cart_item = get_object_or_404(CartItem, id=id, session_id=session_id)
 
+            available_stock = cart_item.product_variant.available_quantity 
             # Update the quantity
+            if new_quantity > available_stock:
+                return JsonResponse({
+                    'success': False,
+                    'message': f"Only {available_stock} items available in stock.",
+                }, status=400)
+
             cart_item.quantity = new_quantity
             cart_item.save()
 

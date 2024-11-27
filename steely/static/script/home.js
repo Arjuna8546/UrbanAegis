@@ -38,38 +38,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Image rotation and zoom on hover
-        cards.forEach(card => {
-            const productImage = card.querySelector('.product-image');
-            const images = card.querySelectorAll('.product-img');
-            const dots = card.querySelectorAll('.dot');
-            let currentImageIndex = 0;
-            let interval;
+        document.querySelectorAll('.product-card').forEach(card => {
+    const productImageContainer = card.querySelector('.product-image');
+    const images = [...card.querySelectorAll('.product-img')];
+    const dots = [...card.querySelectorAll('.dot')];
+    let currentIndex = 0;
+    let rotationInterval;
 
-            function rotateImage() {
-                images[currentImageIndex].classList.remove('active');
-                dots[currentImageIndex].classList.remove('active');
-                currentImageIndex = (currentImageIndex + 1) % images.length;
-                images[currentImageIndex].classList.add('active');
-                dots[currentImageIndex].classList.add('active');
-            }
+    function updateImage(index) {
+        // Reset active state for images and dots
+        images.forEach((img, i) => img.classList.toggle('active', i === index));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    }
 
-            productImage.addEventListener('mouseenter', () => {
-                interval = setInterval(rotateImage, 1200);
-            });
+    function startImageRotation() {
+        rotationInterval = setInterval(() => {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateImage(currentIndex);
+        }, 1200);
+    }
 
-            productImage.addEventListener('mouseleave', () => {
-                clearInterval(interval);
-                images.forEach((img, index) => {
-                    img.classList.toggle('active', index === 0);
-                });
-                dots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === 0);
-                });
-                currentImageIndex = 0;
-            });
-        });
+    function stopImageRotation() {
+        clearInterval(rotationInterval);
+        currentIndex = 0;
+        updateImage(currentIndex);
+    }
+
+    // Event listeners
+    productImageContainer.addEventListener('mouseenter', startImageRotation);
+    productImageContainer.addEventListener('mouseleave', stopImageRotation);
+});
+
 
         // Initial update
         updateButtonStates();
     });
 });
+function toggleWishlist(event,productId) {
+    const btn = event.currentTarget;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    const formData = new FormData();
+    console.log(productId);
+
+    formData.append('product_id', productId);
+
+    fetch('/wishlist/toggle/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            btn.classList.toggle('active');
+            // Optional: Show a success message
+            console.log(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Optional: Show an error message to the user
+    });
+}

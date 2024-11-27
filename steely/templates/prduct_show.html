@@ -83,6 +83,10 @@
         {% endif %}
     </ul>
 </nav>
+<script>
+    // Add this before your other JavaScript code
+    const CSRF_TOKEN = '{{ csrf_token }}';
+</script>
 {% endblock %}
 
 {% block scripts %}

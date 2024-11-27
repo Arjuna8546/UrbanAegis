@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import AccountDetail,ChangePassword,AddressDetail,SetAddressDefault,UpdateAddress,DeleteAddress,OrderListView,order_details_api,CancelOrder
+from user.views import AccountDetail,ChangePassword,AddressDetail,SetAddressDefault,UpdateAddress,DeleteAddress,OrderListView,order_details_api,CancelOrder,Wishlistview
 
 urlpatterns = [
     path('detail/',AccountDetail.as_view(),name='account'),
@@ -11,6 +11,7 @@ urlpatterns = [
     path('orderDeatail/',OrderListView.as_view(),name="userorderdetail"),
     path('orderDeatail/<uuid:uuid>/', order_details_api, name='order-details-api'),
     path('cancel/<uuid:uuid>/', CancelOrder.as_view(), name="cancelorder"),
+    path('wishlist/', Wishlistview.as_view(), name="wishlistview"),
 
     
 

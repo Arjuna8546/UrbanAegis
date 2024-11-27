@@ -37,20 +37,26 @@
             </thead>
             <tbody>
                 {% for order in orders %}
-                    {% for item in order.order_items.all %}
+                    {% with order.order_items.first as item %}
                         <tr onclick="window.location.href='{% url 'specific_order_detail' order.id %}'" style="cursor: pointer;">
                             <td data-label="Image">
                                 <div class="order-image">
-                                    {% with item.product_variant.product.product_images.first as image %}
-                                        {% if image %}
-                                            <img src="{{ image.image_url }}" alt="{{ item.product_variant.product.title }}">
-                                        {% endif %}
-                                    {% endwith %}
+                                    {% if item %}
+                                        {% with item.product_variant.product.product_images.first as image %}
+                                            {% if image %}
+                                                <img src="{{ image.image_url }}" alt="{{ item.product_variant.product.title }}" style="width: 50px; height: 50px; border-radius: 4px;">
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
                                 </div>
                             </td>
-                            
+            
                             <td data-label="Order">
-                                {{ item.product_variant.product.title }}
+                                {% if item %}
+                                    {{ item.product_variant.product.title }}
+                                {% else %}
+                                    No items
+                                {% endif %}
                             </td>
                             <td data-label="Date">
                                 {{ order.created_at|date:"d M, Y" }}
@@ -62,14 +68,15 @@
                                 <span class="status status_of_order-{{ order.status_of_order|lower }}">
                                     {{ order.status_of_order }}
                                 </span>
-                            </td>                            
+                            </td>
                             <td data-label="Order ID" style="color: green; font-size: small;">
                                 {{ order.uuid }}
                             </td>
                         </tr>
-                    {% endfor %}
+                    {% endwith %}
                 {% endfor %}
             </tbody>
+            
         </table>
         <div class="pagination">
             <button>&lt;</button>

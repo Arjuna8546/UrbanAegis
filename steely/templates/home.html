@@ -24,10 +24,28 @@
                     <a href="{% url 'login' %}" class="a">LOGIN</a>
                 {% endif %}
                 <a href="/search" class='a'>SEARCH</a>
-                <a href="{% url 'addcart' %}" class='a'>CART (0)</a>
+                <a href="{% url 'addcart' %}" class='a'>CART</a>
             </div>
         </div>
     </header>
+    {% if messages %}
+    <ul class="messages" id="message-container">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000); // 2000ms = 2 seconds
+    </script>
 
     <main>
         
@@ -67,7 +85,7 @@
             </div>
             
         </section>
-
+       
         <section class="drip-proof">
             <h2>DRIP-PROOF STYLE</h2>
             <div class="features">
@@ -118,7 +136,15 @@
                         </div>
             
                         <div class="product-info">
-                            <h3>{{ product.title }}</h3>
+                            <div class="product-info-header">
+                                <h3>{{ product.title }}</h3>
+                                {% csrf_token %}
+                                <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist(event, {{ product.id }})" title="Add to Wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                             <p class="material">
                                 {% if product.variants.first.color %}
                                     {{ product.variants.first.color }}
@@ -154,36 +180,46 @@
                     <div class="product-card">
                         <div class="product-image">
                             <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
-                                {% if product.product_images.first %}
-                                    <img src="{{ product.product_images.first.image_url }}" alt="{{ product.title }}" class="product-img">
-                                {% else %}
-                                    <img src="{% static 'images/default-image.jpg' %}" alt="No Image Available" class="product-img">
-                                {% endif %}
-                                <div class="dot-navigation">
-                                    {% for image in product.product_images.all %}
-                                    <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                {% with product.product_images.all as images %}
+                                {% if images %}
+                                    {% for image in images %}
+                                    <img src="{{ image.image_url }}" alt="{{ product.title }}" class="product-img {% if forloop.first %}active{% endif %}">
                                     {% endfor %}
-                                </div>
+                                    <div class="dot-navigation">
+                                        {% for image in images %}
+                                        <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <img src="{% static 'placeholder.png' %}" alt="No Image Available" class="product-img">
+                                {% endif %}
+                                {% endwith %}
                             </a>
                         </div>
+            
                         <div class="product-info">
-                            <h3>{{ product.title }}</h3>
+                            <div class="product-info-header">
+                                <h3>{{ product.title }}</h3>
+                                {% csrf_token %}
+                                <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist(event, {{ product.id }})" title="Add to Wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                             <p class="material">
-                                {% with product.variants.first as variant %}
-                                    {% if variant.color %}
-                                        {{ variant.color }}
-                                    {% else %}
-                                        S. Steel
-                                    {% endif %}
-                                {% endwith %}
+                                {% if product.variants.first.color %}
+                                    {{ product.variants.first.color }}
+                                {% else %}
+                                    Material Not Specified
+                                {% endif %}
                             </p>
+            
                             <div class="price">
-                                {% with product.variants.first as variant %}
-                                    <span class="current-price">₹ {{ variant.price }}</span>
-                                    {% if variant.original_price %}
-                                    <span class="original-price">₹ {{ variant.original_price }}</span>
-                                    {% endif %}
-                                {% endwith %}
+                                <span class="current-price">₹ {{ product.variants.first.price }}</span>
+                                {% if product.variants.first.original_price %}
+                                <span class="original-price">₹ {{ product.variants.first.original_price }}</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -191,25 +227,11 @@
                 </div>
                 <button class="nav-btn next-btn" aria-label="Next products">&gt;</button>
             </div>
+            
+            
         </section>
+
         
-        {% comment %} <section class="miso-fam">
-            <h2>MISO FAM</h2>
-            <div class="miso-grid">
-                <div class="miso-item">
-                    <img src="/placeholder.svg" alt="Miso Family">
-                </div>
-                <div class="miso-item">
-                    <img src="/placeholder.svg" alt="Miso Family">
-                </div>
-                <div class="miso-item">
-                    <img src="/placeholder.svg" alt="Miso Family">
-                </div>
-                <div class="miso-item">
-                    <img src="/placeholder.svg" alt="Miso Family">
-                </div>
-            </div>
-        </section> {% endcomment %}
     </main>
 
     <footer class="footer">

@@ -179,6 +179,16 @@ class ProductCreateView(View):
                     color = variant_data.get('color')
                     size = variant_data.get('size')
 
+                    variant_exists = ProductVariant.objects.filter(
+                        product=product,
+                        color=color,
+                        size=size
+                    ).exists()
+
+                    if variant_exists:
+                        messages.warning(request, f"Variant with SKU: {sku}, Color: {color}, Size: {size} already exists.")
+                        continue  # Skip to the next variant if it already exists
+
                     # Create the product variant
                     ProductVariant.objects.create(
                         product=product,
@@ -381,6 +391,9 @@ class SpecificOrderDetail(View):
         user = order.user
         status_of_order= order.status_of_order
         address = order.address_id
+        shipping_fee = "FREE" if order.total_amount > 500 else "50"
+        total_tax = sum(item.tax for item in order.order_items.all())
+        sub_total = order.total_amount-total_tax
 
         # Fetch product and variant details
         product_variants = [
@@ -397,7 +410,24 @@ class SpecificOrderDetail(View):
             'product_variants': product_variants,
             'user': user,
             'address': address,
-            'status_of_order':status_of_order
+            'status_of_order':status_of_order,
+            'shipping_fee':shipping_fee,
+            'total_tax': total_tax,
+            'sub_total': sub_total
         }
         return render(request, self.template_name, context)
+
+class UpdateOrderStatusView(View):
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+        new_status = request.POST.get('status_of_order')
+
+        if new_status in ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"]:
+            order.status_of_order = new_status
+            order.save()
+            messages.success(request, "Order status updated successfully!")
+        else:
+            messages.error(request, "Invalid status update.")
+
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 

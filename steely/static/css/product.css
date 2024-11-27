@@ -704,3 +704,33 @@ select:focus {
     margin-top: 3px;
     font-style: italic;
 }
+.main-image {
+    position: relative;
+}
+.wishlist-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.425);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+.wishlist-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+.wishlist-btn svg {
+    transition: all 0.3s ease;
+}
+.wishlist-btn.active svg {
+    fill: #ff4b4b;
+    stroke: #ff4b4b;
+}

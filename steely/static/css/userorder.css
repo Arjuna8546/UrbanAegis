@@ -217,9 +217,9 @@
     border-radius: 5px;
     cursor: pointer;
 }
-.track-button:hover {
+/* .track-button:hover {
     background-color: #45a049;
-}
+} */
 .modal {
     display: none;
     position: fixed;

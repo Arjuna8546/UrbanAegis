@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.contrib.auth.models import BaseUserManager
 from django.db.models import Min
 import uuid
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from cloudinary.models import CloudinaryField
 
@@ -139,7 +140,7 @@ class Order(models.Model):
 
     PAYMENT_CHOICES = [
         ('credit_card', 'Credit Card'),
-        ('paypal', 'PayPal'),
+        ('razorpay', 'RazorPay'),
         ('cod', 'Cash on Delivery'),
     ]
 
@@ -148,6 +149,8 @@ class Order(models.Model):
     status_of_order = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     address_id = models.ForeignKey('UserAddress', on_delete=models.CASCADE, related_name="orders_address") # Reference to Address (can link to an Address model)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
     payment_status = models.CharField(max_length=20, default='pending')  # Could use similar choices for status
     created_at = models.DateTimeField(auto_now_add=True)
@@ -175,3 +178,115 @@ class OrderItem(models.Model):
         # Automatically calculate the total price as (unit_price * quantity) + tax
         self.total_price = (self.unit_price * self.quantity) + self.tax
         super().save(*args, **kwargs)
+
+class Coupon(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed Amount'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ]
+
+    code = models.CharField(max_length=20, unique=True)
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
+    discount_value = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    min_purchase = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    valid_from = models.DateTimeField()
+    valid_until = models.DateTimeField()
+    usage_limit = models.PositiveIntegerField(null=True, blank=True)
+    times_used = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.code
+
+    def is_active(self):
+        now = timezone.now()
+     
+
+        return (
+            
+            now <= self.valid_until and
+            (self.usage_limit is None or self.times_used < self.usage_limit)
+        )
+
+    def can_use(self, user, order_total):
+        """
+        Check if a user can use this coupon.
+        """
+
+        # Check if coupon is active
+        if not self.status=='active':
+            print(self.is_active)
+            return False, "This coupon is not active."
+
+        # Check minimum purchase amount
+        if order_total < self.min_purchase:
+
+            return False, f"Minimum purchase amount of {self.min_purchase} required."
+
+        # Check if user has already used this coupon
+        if CouponUsage.objects.filter(coupon=self, user=user).exists():
+            return False, "You have already used this coupon."
+
+        return True, "Coupon is valid."
+
+    def calculate_discount(self, order_total):
+        """
+        Calculate the discount amount based on the coupon type and order total.
+        """
+        if self.discount_type == 'percentage':
+            discount = order_total * (self.discount_value / 100)
+        else:  # fixed amount
+            discount = min(self.discount_value, order_total)  # Don't exceed order total
+        return discount
+
+    def use(self, user):
+        """
+        Mark the coupon as used by a user.
+        """
+        self.times_used += 1
+        self.save()
+        CouponUsage.objects.create(coupon=self, user=user)
+
+
+class CouponUsage(models.Model):
+    """
+    Track which users have used which coupons to enforce one-time use per user.
+    """
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['coupon', 'user']
+        ordering = ['-used_at']
+
+    def __str__(self):
+        return f"{self.user.username} used {self.coupon.code}"
+
+class Wishlist(models.Model):
+
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+
+    
+

@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render,redirect
 from django.views.generic import TemplateView
 from django.views import View
@@ -7,6 +8,8 @@ from django.db import transaction
 from decimal import Decimal
 from django.db.models import F
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 class Checkout(LoginRequiredMixin, View):
     login_url = '/login/'  # Redirect to the login page if not logged in
@@ -15,6 +18,7 @@ class Checkout(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         cartitems = CartItem.objects.filter(user=user)
+
         
         # Calculate subtotal, tax, and total
         subtotal = sum(item.product_variant.price * item.quantity for item in cartitems)
@@ -47,6 +51,10 @@ class OrderAdd(View):
         total = subtotal + tax
         payment_method = request.POST.get("payment_method")
         address_id = request.POST.get('address')
+        discount1 = request.POST.get('discount', '0')
+        total1 = request.POST.get('total', '0')
+        
+        
 
         if not payment_method:
             messages.error(request, "Please select a payment method.")
@@ -68,8 +76,11 @@ class OrderAdd(View):
                 order = Order.objects.create(
                     user=user,
                     address_id=address,
-                    total_amount=total,
+                    subtotal= total,
+                    total_amount=total1,
                     payment_method=payment_method,
+                    discount = discount1,
+
                 )
                 # Create order items
                 order_items = []
@@ -78,7 +89,7 @@ class OrderAdd(View):
 
                     # Check stock availability
                     if product_variant.available_quantity < item.quantity:
-                        raise ValueError(f"Insufficient stock for {product_variant.name}")
+                        raise ValueError(f"Insufficient stock for {product_variant.product.title}")
 
                     tax_rate = Decimal('0.05')
                     # Create OrderItem
@@ -108,6 +119,105 @@ class OrderAdd(View):
 
         messages.success(request, "Order placed successfully!")
         return redirect("addcart")
+    
+@login_required
+@require_POST
+def apply_coupon(request):
+    import json
+    from decimal import Decimal
+    from django.utils import timezone
+
+    try:
+        data = json.loads(request.body)
+        coupon_code = data.get('coupon_code')
+
+        if not coupon_code:
+            return JsonResponse({
+                'valid': False,
+                'message': 'Please enter a coupon code.'
+            })
+
+        try:
+            coupon = Coupon.objects.get(code=coupon_code)
+            
+        except Coupon.DoesNotExist:
+            return JsonResponse({
+                'valid': False,
+                'message': 'Invalid coupon code.'
+            })
+
+        # Get cart total
+        cart_items = CartItem.objects.filter(user=request.user)
+        subtotal = sum(item.get_total_price() for item in cart_items)
+
+        # Validate coupon
+        if not coupon.is_active():
+
+            return JsonResponse({
+                'valid': False,
+                'message': 'This coupon has expired.'
+            })
+
+        can_use, message = coupon.can_use(request.user, subtotal)
+        print(can_use)
+
+        if not can_use:
+            return JsonResponse({
+                'valid': False,
+                'message': message,
+            })
+        # Calculate discount
+        discount = coupon.calculate_discount(subtotal)
+        
+        # Calculate new total
+        total = subtotal - discount
+
+        # Add tax calculation (assuming 18% GST)
+        tax = Decimal('0.05') * total
+        final_total = total + tax
+
+        # Mark coupon as used
+        # coupon.use(request.user)
+
+        # Store coupon in session for order processing
+        request.session['applied_coupon'] = coupon.code
+
+        return JsonResponse({
+            'valid': True,
+            'message': 'Coupon applied successfully!',
+            'subtotal': str(subtotal),
+            'discount': str(discount),
+            'tax': str(tax),
+            'total': str(final_total)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'valid': False,
+            'message': 'An error occurred while applying the coupon.'
+        })
+@login_required
+@require_POST
+def remove_coupon(request):
+    # Remove coupon from session
+    if 'applied_coupon' in request.session:
+        del request.session['applied_coupon']
+
+    # Calculate normal totals
+    cart_items = CartItem.objects.filter(user=request.user)
+    subtotal = sum(item.get_total_price() for item in cart_items)
+    tax = Decimal('0.05') * subtotal
+    total = subtotal + tax
+
+    return JsonResponse({
+        'valid': True,
+        'message': 'Coupon removed successfully!',
+        'subtotal': str(subtotal),
+        'tax': str(tax),
+        'total': str(total)
+    })
+
+
 
 
         

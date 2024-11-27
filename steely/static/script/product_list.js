@@ -35,33 +35,42 @@ function renderProducts(products) {
             window.location.href = `/product/${product.id}`; // Adjust the URL pattern as per your Django app
         };
         productCard.innerHTML = `
-            <div class="product-image">
+                <div class="product-image">
                     <img src="${product.images[0]}" alt="${product.name}">
                 </div>
                 <div class="product-info">
-                    <div class="product-name">${product.name}</div>
+                    <div class="product-info-header">
+                        <div class="product-name">${product.name}</div>
+                        <button class="wishlist-btn" 
+                                onclick="toggleWishlist(event, ${product.id})" 
+                                type="button" 
+                                title="Add to Wishlist">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="variant-price" style="color: red;">
-                         ${product.variants[0].price}
+                        ${product.variants[0].price}
                     </div>
                     <div class="product-variants">
                         <div class="available-colors">
-                        <div class="color-boxes">
-                            ${[...new Set(product.variants.map(variant => variant.color))]
-                                .map(color => `<span class="color-box" style="background-color: ${getColorCode(color)};" title="${color}"></span>`)
-                                .join('')}
+                            <div class="color-boxes">
+                                ${[...new Set(product.variants.map(variant => variant.color))]
+                                    .map(color => `<span class="color-box" style="background-color: ${getColorCode(color)};" title="${color}"></span>`)
+                                    .join('')}
+                            </div>
+                        </div>
+                        <div class="available-sizes">
+                            <div class="size-boxes">
+                                ${[...new Set(product.variants.map(variant => variant.size))]
+                                    .map(size => `<span class="size-box">${size}</span>`)
+                                    .join('')}
+                            </div>
                         </div>
                     </div>
-                    <div class="available-sizes">
-                        <div class="size-boxes">
-                            ${[...new Set(product.variants.map(variant => variant.size))]
-                                .map(size => `<span class="size-box">${size}</span>`)
-                                .join('')}
-                        </div>
-                    </div>
-                    </div>
-
                 </div>
-        `;
+            `;
         function getColorCode(color) {
             const colorMap = {
                 gold: '#FFD700',
@@ -183,3 +192,54 @@ document.getElementById('filterBtn2').addEventListener('click', () => {
         })
         .catch(error => console.error('Error fetching filtered products:', error));
 });
+function toggleWishlist(event, productId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const btn = event.currentTarget;
+    
+    const formData = new FormData();
+    formData.append('product_id', productId);
+
+    fetch('/wishlist/toggle/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': CSRF_TOKEN,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            btn.classList.toggle('active');
+            console.log(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+function showToast(message) {
+    // Create toast element if it doesn't exist
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        document.body.appendChild(toast);
+    }
+    
+    // Set message and show toast
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}

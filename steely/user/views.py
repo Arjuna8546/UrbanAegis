@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from user.forms import PasswordChangeForm,UserAddressForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from core.models import UserAddress,Order,OrderItem
+from core.models import UserAddress,Order,OrderItem,Wishlist
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from datetime import timedelta
@@ -229,6 +229,7 @@ def order_details_api(request, uuid):
         "order_date": order.created_at.strftime("%d %b %Y"),
         "estimated_delivery": (order.created_at + timedelta(days=7)).strftime("%d %b %Y"),
         "total": order.total_amount,
+        "discount":order.discount,
         "shipping_address": f"{order.address_id.street_address}, {order.address_id.city}, {order.address_id.state}, {order.address_id.country} Pin:{order.address_id.pin_code}",
         "status": order.status_of_order,
         "pay_method": order.payment_method,
@@ -258,3 +259,11 @@ class CancelOrder(View):
         else:
             messages.error(request,"order canncelation failed")
         return redirect('userorderdetail')
+
+class Wishlistview(View):
+
+    def get(self,request):
+        user=request.user
+        wishlists= Wishlist.objects.filter(user=user.id)
+        user_wishlist = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True) if request.user.is_authenticated else []
+        return render(request,"wishlist.html",{'wishlists':wishlists,'user_wishlist':user_wishlist})
