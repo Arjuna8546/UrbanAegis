@@ -20,8 +20,13 @@ class Checkout(LoginRequiredMixin, View):
         cartitems = CartItem.objects.filter(user=user)
 
         
-        # Calculate subtotal, tax, and total
-        subtotal = sum(item.product_variant.price * item.quantity for item in cartitems)
+        # Calculate subtotal, tax, and total with offer discounts
+        subtotal = 0
+        for item in cartitems:
+            item_price = item.product_variant.price
+            if item.product_variant.is_offer:
+                item_price = item_price - item.product_variant.offer_discount
+            subtotal += item_price * item.quantity
         tax_rate = Decimal('0.05')
         tax = round(subtotal * tax_rate, 2)
         total = subtotal + tax
@@ -45,7 +50,13 @@ class OrderAdd(View):
     def post(self, request):
         user = request.user
         cart_items = CartItem.objects.filter(user=user).select_related('product_variant')  # Optimize query with select_related
-        subtotal = float(sum(item.product_variant.price * item.quantity for item in cart_items))
+        # Calculate subtotal with offer discounts
+        subtotal = 0
+        for item in cart_items:
+            item_price = item.product_variant.price
+            if item.product_variant.is_offer:
+                item_price = item_price - item.product_variant.offer_discount
+            subtotal += float(item_price * item.quantity)
         tax_rate = 0.05
         tax = round(subtotal * tax_rate, 2)
         total = subtotal + tax
@@ -92,15 +103,22 @@ class OrderAdd(View):
                         raise ValueError(f"Insufficient stock for {product_variant.product.title}")
 
                     tax_rate = Decimal('0.05')
-                    # Create OrderItem
+                    
+                     # Create OrderItem
+                    unit_price = product_variant.price
+                    if product_variant.is_offer:
+                        unit_price = unit_price - product_variant.offer_discount
+                    
+                    item_total = unit_price * item.quantity
+                    item_tax = (item_total * tax_rate).quantize(Decimal('0.01'))
+                    
                     order_items.append(OrderItem(
                         order=order,
                         product_variant=product_variant,
                         quantity=item.quantity,
-                        unit_price=product_variant.price,
-                        total_price=(product_variant.price * item.quantity) + 
-                                    (product_variant.price * item.quantity * tax_rate).quantize(Decimal('0.01')),
-                        tax=(product_variant.price * item.quantity * tax_rate).quantize(Decimal('0.01'))
+                        unit_price=unit_price,
+                        total_price=item_total + item_tax,
+                        tax=item_tax
                     ))
 
                     # Update stock

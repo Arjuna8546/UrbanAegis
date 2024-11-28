@@ -1,5 +1,5 @@
 from django.urls import path
-from core.views import RegisterView, VerifyOTPView,HomePageView, LoginView,ProductDetailView,CustomLogoutView,ProductListing,AccountInactive,QuantityView,ProductShow,ProductListView,FilteredProductList,toggle_wishlist
+from core.views import RegisterView, VerifyOTPView,HomePageView, LoginView,ProductDetailView,CustomLogoutView,AccountInactive,QuantityView,ProductShow,ProductListView,FilteredProductList,toggle_wishlist
 
 urlpatterns = [
     
@@ -9,7 +9,6 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('product/<int:product_id>/', ProductDetailView.as_view(), name='product_detail'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
-    path('list/',ProductListing.as_view(),name='product_listing'),
     path('inactive/',AccountInactive.as_view(),name="inactive_account_page"),
     path('quantity/',QuantityView.as_view(),name="quantityview"),
     path('product/list/',ProductShow.as_view(),name="productgetting"),

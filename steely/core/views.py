@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.views import View
-from core.models import Users,Product, ProductVariant, ProductImage,Category,Wishlist
+from core.models import Users,Product, ProductVariant, ProductImage,Category,Wishlist,Offer
 from random import randint
 from django.contrib.auth import authenticate, login,logout
 from django.views.generic import TemplateView
@@ -148,6 +148,15 @@ class HomePageView(TemplateView):
         ).distinct().prefetch_related('product_images', 'variants')  # Prefetch for efficient queries
         
 
+        for product in products:
+            variants = list(product.variants.all())
+            for variant in variants:
+                if variant.is_offer and variant.offer_discount is not None:
+                    variant.discounted_price = max(variant.price - variant.offer_discount, 0)
+                else:
+                    variant.discounted_price = variant.price
+            product.variants_list = variants
+
         context['products'] = products
         return context
 
@@ -197,7 +206,17 @@ class ProductDetailView(View):
         variants = ProductVariant.objects.filter(product=product, is_delete=True)
         images = ProductImage.objects.filter(product=product,is_delete=True)
         user_wishlist = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True) if request.user.is_authenticated else []
-    
+
+        for variant in variants:
+            if variant.offer_discount:
+                variant.original_price = variant.price
+                variant.discounted_price = variant.price - variant.offer_discount
+                # Calculate discount percentage for display
+                variant.discount_percentage = (variant.offer_discount / variant.price) * 100
+            else:
+                variant.original_price = variant.price
+                variant.discounted_price = variant.price
+                variant.discount_percentage = 0
 
         related_products = (
             Product.objects.filter(
@@ -226,9 +245,9 @@ class CustomLogoutView(View):
         logout(request)
         return redirect('home') 
 
-class ProductListing(View):
-    def get(self,request):
-        return render(request,'product_listing.html')
+# class ProductListing(View):
+#     def get(self,request):
+#         return render(request,'product_listing.html')
 class AccountInactive(TemplateView):
     template_name='inactive.html'   
 
@@ -244,28 +263,62 @@ class QuantityView(View):
 
         # Query the database for the product variant
         try:
+            # Calculate discount information
             variant = get_object_or_404(ProductVariant, product_id=product_id, color=color, size=size)
-            return JsonResponse({'quantity': variant.available_quantity, 'price': variant.price})
+
+            has_discount = variant.is_offer
+            discounted_price = variant.price - variant.offer_discount if has_discount else variant.price
+            discount_percentage = (variant.offer_discount / variant.price) * 100 if has_discount else 0
+            response_data = {
+                'quantity': variant.available_quantity,
+                'original_price': variant.price,
+                'has_discount': has_discount,
+                'discount_amount': variant.offer_discount if has_discount else 0,
+                'discounted_price': discounted_price,
+                'discount_percentage': round(discount_percentage, 2)
+            }
+            
+            return JsonResponse(response_data)
         except ProductVariant.DoesNotExist:
-            return JsonResponse({'quantity': 0, 'price': None})  # Return 0 and None if not found
+            return JsonResponse({'quantity': 0, 'price': None})
         
-class ProductShow(View):
+class ProductListView(View):
     def get(self, request):
         # Filter active products and prefetch related variants and images
         products = Product.objects.filter(is_delete=True).prefetch_related(
+            'variants', 'product_images', 'category'
+        )
+        
+        context = {
+            'products': products,
+            'active_categories': Category.objects.filter(is_active=True)
+        }
+        return render(request, 'prduct_show.html', context)
+
+class ProductShow(View):
+    def get(self, request):
+        products = Product.objects.filter(is_delete=True).prefetch_related(
             'variants', 'product_images'
         )
-        product_data = []
+        
+        # Get user's wishlist items if user is authenticated
+        wishlist_items = set()
+        if request.user.is_authenticated:
+            wishlist_items = set(Wishlist.objects.filter(
+                user=request.user
+            ).values_list('product_id', flat=True))
 
+        product_data = []
         for product in products:
             product_variants = product.variants.filter(is_delete=True)
             product_images = product.product_images.filter(is_delete=True)
-            # Build product data
+            
             product_data.append({
                 "id": product.id,
                 "name": product.title,
                 "description": product.description,
                 "category": product.category.name,
+                "in_wishlist": product.id in wishlist_items,  # Add wishlist status
                 "variants": [
                     {
                         "id": variant.id,
@@ -281,24 +334,7 @@ class ProductShow(View):
             })
 
         return JsonResponse(product_data, safe=False)
-    
-class ProductListView(View):
-     def get(self, request):
-        # Fetch all active categories
-        active_categories = Category.objects.filter(is_active=True)
 
-        # Fetch all active products
-        products = Product.objects.filter(is_delete=False).prefetch_related('variants', 'product_images').order_by('-id')
-        # Pagination logic
-        paginator = Paginator(products, 12)  # 16 products per page (3 rows × 4 products)
-        page_number = request.GET.get('page')  # Get the current page number from the query params
-        page_obj = paginator.get_page(page_number)  # Get the products for the current page
-
-        # Pass data to the template
-        return render(request, "prduct_show.html", {
-            "active_categories": active_categories,
-            "page_obj": page_obj,  # Paginated products
-        })
 
 class FilteredProductList(View):
     def get(self, request):

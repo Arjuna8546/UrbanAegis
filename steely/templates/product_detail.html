@@ -460,7 +460,19 @@
                 .then(data => {
                     if (data.quantity > 0) {
                         quantityInfo.innerHTML = `Available: ${data.quantity}`;
-                        priceDiv.textContent = `₹${data.price}`;
+                        
+                        // Update price display based on discount
+                        if (data.has_discount) {
+                            priceDiv.innerHTML = `
+                                <span style="text-decoration: line-through; color: #999;">₹${data.original_price}</span>
+                                <span style="color: #e41749; margin-left: 10px;">₹${data.discounted_price}</span>
+                                <br>
+                                <span style="background: #e41749; color: white; padding: 1px 8px; border-radius: 4px;  font-size:14px;">
+                                    Save ₹${data.discount_amount}
+                                </span>`;
+                        } else {
+                            priceDiv.innerHTML = `₹${data.original_price}`;
+                        }
                     } else {
                         quantityInfo.textContent = 'Out of Stock';
                         priceDiv.textContent = 'Price not available';

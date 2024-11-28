@@ -75,6 +75,9 @@ class ProductVariant(models.Model):
     stock_status = models.BooleanField(default=True)
     sku = models.CharField(max_length=100, unique=True,default="default")
     is_delete = models.BooleanField(default=True)
+    is_offer = models.BooleanField(default=False)
+    offer_discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
 
     def __str__(self):
         return f"{self.product.title} - {self.color} - {self.size}"
@@ -119,9 +122,11 @@ class CartItem(models.Model):
         return f"{self.product} - x{self.quantity}"
 
     def get_price(self):
-        """Dynamically fetch the price from the product or variant."""
         if self.product_variant:
-            return self.product_variant.price
+            base_price = self.product_variant.price
+            if self.product_variant.is_offer and self.product_variant.offer_discount:
+                return base_price - self.product_variant.offer_discount
+            return base_price
         return self.product.price
 
     def get_total_price(self):
@@ -289,4 +294,122 @@ class Wishlist(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
 
     
+class Offer(models.Model):
 
+    DISCOUNT_TYPE_CHOICE=(
+        ('percentage','Percentage'),
+        ('fixed','Fixed amount'),
+    )
+    STATUS_CHOICE=(
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    )
+
+    discount_type = models.CharField(max_length=20,choices=DISCOUNT_TYPE_CHOICE)
+    discount_value= models.DecimalField(max_digits=10,decimal_places=2)
+    valid_from = models.DateTimeField()
+    valid_until= models.DateTimeField()
+    status = models.CharField(max_length=20,choices=STATUS_CHOICE,default='active')
+    description = models.TextField()
+    product = models.ForeignKey("Product", on_delete=models.CASCADE,related_name="product_offer",null=True,blank=True)
+    category = models.ForeignKey("Category", on_delete=models.CASCADE,related_name="category_offer",null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        if self.product:
+            return f"Offer for {self.product.title}"
+        elif self.category:
+            return f"Offer for {self.category.name}"
+        return f"Offer {self.id}"
+
+    def apply_offer(self):
+        """Apply the offer to all relevant product variants"""
+        if not self.status == 'active':
+            return
+
+        variants = []
+        if self.product:
+            variants = self.product.variants.filter(is_delete=True)
+        elif self.category:
+            variants = ProductVariant.objects.filter(
+                product__category=self.category,
+                product__is_delete=True,
+                is_delete=True
+            )
+
+        for variant in variants:
+            original_price = variant.price
+            if self.discount_type == 'percentage':
+                discount_amount = (original_price * self.discount_value) / 100
+            else:  # fixed amount
+                discount_amount = self.discount_value
+
+            variant.is_offer = True
+            variant.offer_discount = discount_amount
+            variant.save()
+
+    def remove_offer(self):
+        """Remove the offer from all relevant product variants"""
+        variants = []
+        if self.product:
+            variants = self.product.variants.filter(is_delete=True)
+        elif self.category:
+            variants = ProductVariant.objects.filter(
+                product__category=self.category,
+                product__is_delete=True,
+                is_delete=True
+            )
+
+        for variant in variants:
+            variant.is_offer = False
+            variant.offer_discount = None
+            variant.save()
+
+    def save(self, *args, **kwargs):
+        if not self.pk or self._state.adding:
+            # New offer being created
+            super().save(*args, **kwargs)
+            if self.status == 'active':
+                self.apply_offer()
+        else:
+            # Existing offer being updated
+            old_offer = Offer.objects.get(pk=self.pk)
+            
+            # First clear the old offer's effects
+            if old_offer.status == 'active':
+                # Get affected variants from old offer
+                old_variants = []
+                if old_offer.product:
+                    old_variants = old_offer.product.variants.filter(is_delete=True)
+                elif old_offer.category:
+                    old_variants = ProductVariant.objects.filter(
+                        product__category=old_offer.category,
+                        product__is_delete=True,
+                        is_delete=True
+                    )
+                
+                # Clear old offer effects
+                for variant in old_variants:
+                    variant.is_offer = False
+                    variant.offer_discount = None
+                    variant.save()
+            
+            # Now save the new offer state
+            super().save(*args, **kwargs)
+            
+            # Check if any relevant fields have changed
+            fields_changed = (
+                old_offer.status != self.status or
+                old_offer.discount_type != self.discount_type or
+                old_offer.discount_value != self.discount_value or
+                old_offer.product != self.product or
+                old_offer.category != self.category
+            )
+            
+            # Apply new offer if needed
+            if fields_changed and self.status == 'active':
+                self.apply_offer()

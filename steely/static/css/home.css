@@ -316,21 +316,32 @@
 
         .price {
             display: flex;
-            justify-content: center;
-            gap: 10px;
             align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-
+        
         .current-price {
-            color: #ff4444;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #000;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .discount-badge {
+            background-color: #ff4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
             font-weight: bold;
         }
-
-        .original-price {
-            color: #999;
-            text-decoration: line-through;
-            font-size: 14px;
-        }
+        
 
         .nav-btn {
             position: absolute;

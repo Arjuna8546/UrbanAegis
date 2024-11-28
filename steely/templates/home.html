@@ -154,9 +154,14 @@
                             </p>
             
                             <div class="price">
-                                <span class="current-price">₹ {{ product.variants.first.price }}</span>
-                                {% if product.variants.first.original_price %}
-                                <span class="original-price">₹ {{ product.variants.first.original_price }}</span>
+                                {% if product.variants_list.0.is_offer %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.discounted_price }}</span>
+                                    <span class="original-price">₹ {{ product.variants_list.0.price }}</span>
+                                    <span class="discount-badge">
+                                        ₹{{ product.variants_list.0.offer_discount }} OFF
+                                    </span>
+                                {% else %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.price }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -216,9 +221,14 @@
                             </p>
             
                             <div class="price">
-                                <span class="current-price">₹ {{ product.variants.first.price }}</span>
-                                {% if product.variants.first.original_price %}
-                                <span class="original-price">₹ {{ product.variants.first.original_price }}</span>
+                                {% if product.variants_list.0.is_offer %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.discounted_price }}</span>
+                                    <span class="original-price">₹ {{ product.variants_list.0.price }}</span>
+                                    <span class="discount-badge">
+                                        ₹{{ product.variants_list.0.offer_discount }} OFF
+                                    </span>
+                                {% else %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.price }}</span>
                                 {% endif %}
                             </div>
                         </div>

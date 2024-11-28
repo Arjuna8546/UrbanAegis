@@ -405,3 +405,10 @@ body {
     visibility: visible;
     opacity: 1;
 }
+.wishlist-btn.active svg {
+    fill: red;
+}
+
+.wishlist-btn svg {
+    transition: fill 0.2s ease;
+}
