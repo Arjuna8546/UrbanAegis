@@ -205,3 +205,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',      # Load extra data from provider
     'social_core.pipeline.user.user_details',                # Update user details if needed
 )
+
+RAZORPAY_KEY_ID = 'rzp_test_xgAbYbKWLNZHR0'
+RAZORPAY_KEY_SECRET = 'pBaRn0FrJtHGQABUEkHfJwCZ'

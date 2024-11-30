@@ -323,6 +323,9 @@ class ProductShow(View):
                     {
                         "id": variant.id,
                         "price": f"${variant.price:.2f}",
+                        "discounted_price": f"${(variant.price - variant.offer_discount):.2f}" if variant.is_offer else None,
+                        "is_offer": variant.is_offer,
+                        "offer_discount": f"${variant.offer_discount:.2f}" if variant.is_offer else None,
                         "color": variant.color,
                         "size": variant.size,
                         "stock_status": variant.stock_status,

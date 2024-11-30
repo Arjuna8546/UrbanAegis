@@ -51,7 +51,13 @@ function renderProducts(products) {
             </button>
         </div>
         <div class="variant-price" style="color: red;">
-            ${product.variants[0].price}
+        ${product.variants[0].is_offer 
+            ? `<span style="text-decoration: line-through; color: gray;">${product.variants[0].price}</span> 
+               <span>${product.variants[0].discounted_price}</span>
+               <div style="display: inline-block; background-color: red; color: white; padding: 2px 6px; margin-left: 10px; border-radius: 4px; font-size: .9em;">
+                   Save ${product.variants[0].offer_discount}
+               </div>` 
+            : `${product.variants[0].price}`}
         </div>
         <div class="product-variants">
             <div class="available-colors">
@@ -195,8 +201,9 @@ function toggleWishlist(event, productId) {
     event.preventDefault();
     event.stopPropagation();
     
-    const btn = event.currentTarget;
     
+    const btn = event.currentTarget;
+    const heartIcon = btn.querySelector('svg');
     const formData = new FormData();
     formData.append('product_id', productId);
 

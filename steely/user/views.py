@@ -266,4 +266,6 @@ class Wishlistview(View):
         user=request.user
         wishlists= Wishlist.objects.filter(user=user.id)
         user_wishlist = Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True) if request.user.is_authenticated else []
+        
+        
         return render(request,"wishlist.html",{'wishlists':wishlists,'user_wishlist':user_wishlist})

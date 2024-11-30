@@ -77,6 +77,8 @@ class ProductVariant(models.Model):
     is_delete = models.BooleanField(default=True)
     is_offer = models.BooleanField(default=False)
     offer_discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
 
 
     def __str__(self):
@@ -157,6 +159,7 @@ class Order(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
     payment_status = models.CharField(max_length=20, default='pending')  # Could use similar choices for status
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -344,12 +347,22 @@ class Offer(models.Model):
         for variant in variants:
             original_price = variant.price
             if self.discount_type == 'percentage':
-                discount_amount = (original_price * self.discount_value) / 100
+                new_discount_amount = (original_price * self.discount_value) / 100
             else:  # fixed amount
-                discount_amount = self.discount_value
+                new_discount_amount = self.discount_value
 
-            variant.is_offer = True
-            variant.offer_discount = discount_amount
+            if variant.is_offer:
+            # Compare existing offer discount with the new one
+                if new_discount_amount > variant.offer_discount:
+                    # Apply the new offer if it's better
+                    variant.offer_discount = new_discount_amount
+                    variant.price_discount = original_price - new_discount_amount
+            else:
+                # Apply the offer as there is no existing offer
+                variant.is_offer = True
+                variant.offer_discount = new_discount_amount
+                variant.price_discount = original_price - new_discount_amount
+
             variant.save()
 
     def remove_offer(self):
@@ -365,8 +378,43 @@ class Offer(models.Model):
             )
 
         for variant in variants:
+        # Remove current offer
             variant.is_offer = False
             variant.offer_discount = None
+            variant.price_discount = None
+            
+            # Check for another applicable offer
+            applicable_offers = Offer.objects.filter(
+                status='active',
+                product=variant.product
+            ).exclude(id=self.id)
+
+            if not applicable_offers.exists() and self.category:
+                
+                # Check for category-wide offers if no product-specific offer exists
+                applicable_offers = Offer.objects.filter(
+                    status='active',
+                    category=variant.product.category
+                ).exclude(id=self.id)
+            print(applicable_offers)
+            if applicable_offers.exists():
+                # Apply the highest applicable offer
+                
+                best_offer = max(
+                    applicable_offers,
+                    key=lambda offer: (offer.discount_value if offer.discount_type == 'fixed' else (variant.price * offer.discount_value / 100))
+                )
+
+                original_price = variant.price
+                if best_offer.discount_type == 'percentage':
+                    discount_amount = (original_price * best_offer.discount_value) / 100
+                else:  # fixed amount
+                    discount_amount = best_offer.discount_value
+
+                variant.is_offer = True
+                variant.offer_discount = discount_amount
+                variant.price_discount = original_price - discount_amount
+
             variant.save()
 
     def save(self, *args, **kwargs):
@@ -396,6 +444,7 @@ class Offer(models.Model):
                 for variant in old_variants:
                     variant.is_offer = False
                     variant.offer_discount = None
+                    variant.price_discount = None
                     variant.save()
             
             # Now save the new offer state

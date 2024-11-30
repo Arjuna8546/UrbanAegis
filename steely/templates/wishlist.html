@@ -46,11 +46,18 @@
                         </h2>
                         
                         <!-- Product Details -->
-                        <div class="od-text-sm od-text-gray-600 od-flex od-gap-4 od-mb-2">
+                        {% if item.product.variants.first.is_offer %}
+                            <span class="od-font-semibold od-text-black" >
+                                ${{ item.product.variants.first.price }}
+                            </span>
+                            <div style="display: inline-block; background-color: red; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em;">
+                                Save ${{ item.product.variants.first.offer_discount }}
+                            </div>
+                        {% else %}
                             <span class="od-font-semibold od-text-black">
                                 ${{ item.product.variants.first.price }}
                             </span>
-                        </div>
+                        {% endif %}
                         
                         <!-- Product Description -->
                         <div class="od-text-sm od-text-gray-600">
