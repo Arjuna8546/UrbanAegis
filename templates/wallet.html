@@ -1,7 +1,11 @@
 {% extends "account_base.html" %}
 {% load static %}
 
-{% block breadcrum %}{% endblock breadcrum %}
+{% block breadcrum %}
+<nav>
+    <div class="breadcrumb-path"><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">Urban Aegis</a> ><a href="{% url 'account' %}" style="text-decoration: none;color: inherit;"> My Account</a>> Wallet</div>
+</nav>
+{% endblock breadcrum %}
 {% block body %}
 
 <div class="wallet-container">

@@ -1,7 +1,7 @@
 {% extends "account_base.html" %}
 {% load static %}
 {% block breadcrum %}
-<div class="breadcrumb-path">Urban Angle > My Account > Orders</div>
+<div class="breadcrumb-path"><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">Urban Aegis</a> ><a href="{% url 'account' %}" style="text-decoration: none;color: inherit;"> My Account</a> > Orders</div>
 {% endblock breadcrum %}
 {% block body %}
 <body>

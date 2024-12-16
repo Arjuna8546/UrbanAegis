@@ -3,9 +3,7 @@
 
 {% block breadcrum %}
 <nav>
-    <a href="{% url 'home' %}">Home</a> /
-    <a href="{% url 'account' %}">My Account</a> /
-    <span>Return Orders</span>
+    <div class="breadcrumb-path"><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">Urban Aegis</a> ><a href="{% url 'account' %}" style="text-decoration: none;color: inherit;"> My Account</a>> Return Order</div>
 </nav>
 {% endblock breadcrum %}
 
