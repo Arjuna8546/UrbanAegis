@@ -481,7 +481,7 @@ class ProductGridList(View):
             .distinct()
         )
 
-        if sort == 'price-asc':
+        if sort == 'price-asc': 
             products = products.order_by('variants__price')
         elif sort == 'price-desc':
             products = products.order_by('-variants__price')

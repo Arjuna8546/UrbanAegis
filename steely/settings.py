@@ -215,7 +215,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',                # Update user details if needed
 )
 
-RAZORPAY_KEY_ID = 'rzp_test_xgAbYbKWLNZHR0'
-RAZORPAY_KEY_SECRET = 'pBaRn0FrJtHGQABUEkHfJwCZ'
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
