@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URBAN AEGIS</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">URBAN AEGIS</a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">HOME</a>
+                <a href="{% url 'allproductshow' %}">BEST SELLERS</a>
+                <a href="{% url 'allproductshow' %}">SHOP</a>
+                <a href="{% url 'contact' %}">CONTACT</a>
+            </nav>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'account' %}" class="a">ACCOUNT</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="a">LOGIN</a>
+                {% endif %}
+                <a href="{% url 'addcart' %}" class='a'>CART</a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <main>
+        
+        <section class="hero">
+            <div class="hero-text">
+                Hi, I'm AEGIS<br>
+                I cook jewellery
+            </div>
+                {% comment %} <img class ="homeimage"src="#" alt="Sonia illustration" > {% endcomment %}
+            
+        </section>
+
+        <section class="categories">
+            <a href="/allproduct/?category=Earrings" class="category-link" data-category="Earrings">
+                <div class="category-item">
+                    <img src="{% static 'images/earring_1.webp' %}" alt="Earrings">
+                    <div class="category-label">EARRINGS</div>
+                </div>
+            </a>
+            
+            <a href="/allproduct/?category=Bracelet">
+            <div class="category-item">
+                <img src="{% static 'images/bracelet_1.webp' %}" alt="Bracelets">
+                <div class="category-label">BRACELETS</div>
+            </div>
+        </a>
+            <a href="/allproduct/?category=Chain">
+            <div class="category-item">
+                <img src="{% static 'images/chain_1.webp' %}" alt="Chain">
+                <div class="category-label">CHAINS</div>
+            </div>
+        </a>
+            <a href="/allproduct/?category=Rings">
+            <div class="category-item">
+                <img src="{% static 'images/rings_1.webp' %}" alt="Rings">
+                <div class="category-label">RINGS</div>
+            </div>
+        </a>
+            <a href="/allproduct/?category=Pendant">
+            <div class="category-item">
+                <img src="{% static 'images/pendant_1.webp' %}" alt="Pendant">
+                <div class="category-label">PENDANTS</div>
+            </div>
+        </a>
+            <a href="/allproduct/?category=Pearl">
+            <div class="category-item">
+                <img src="{% static 'images/pearl_1.webp' %}" alt="Pearls">
+                <div class="category-label">PEARLS</div>
+            </div>
+        </a>
+            
+        </section>
+       
+        <section class="drip-proof">
+            <h2>DRIP-PROOF STYLE</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>Water & Sweat Proof</h3>
+                    <p>No Discoloration or Tarnishing</p>
+                </div>
+                <div class="feature">
+                    <h3>Hypoallergenic</h3>
+                    <p>No Green Skin</p>
+                </div>
+                <div class="feature">
+                    <h3>Premium Quality</h3>
+                    <p>Built to Last</p>
+                </div>
+            </div>
+        </section>
+
+        
+
+        <section class="product-section">
+            <div class="section-header">
+                <h2>MOST WANTED STUFF</h2>
+                <a href="{% url 'allproductshow' %}" class="view-all">View all</a>
+            </div>
+            <div class="product-slider">
+                <button class="nav-btn prev-btn" aria-label="Previous products">&lt;</button>
+                <div class="product-track" id="productTrack">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                {% with product.product_images.all as images %}
+                                {% if images %}
+                                    {% for image in images %}
+                                    <img src="{{ image.image_url }}" alt="{{ product.title }}" class="product-img {% if forloop.first %}active{% endif %}">
+                                    {% endfor %}
+                                    <div class="dot-navigation">
+                                        {% for image in images %}
+                                        <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <img src="{% static 'placeholder.png' %}" alt="No Image Available" class="product-img">
+                                {% endif %}
+                                {% endwith %}
+                            </a>
+                        </div>
+            
+                        <div class="product-info">
+                            <div class="product-info-header">
+                                <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                <h3>{{ product.title }}</h3>
+                                </a>
+                                {% csrf_token %}
+                                <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist(event, {{ product.id }})" title="Add to Wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                            <p class="material">
+                                {% if product.variants.first.color %}
+                                    {{ product.variants.first.color }}
+                                {% else %}
+                                    Material Not Specified
+                                {% endif %}
+                            </p>
+            
+                            <div class="price">
+                                {% if product.variants_list.0.is_offer %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.discounted_price }}</span>
+                                    <span class="original-price">₹ {{ product.variants_list.0.price }}</span>
+                                    <span class="discount-badge">
+                                        ₹{{ product.variants_list.0.offer_discount }} OFF
+                                    </span>
+                                {% else %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.price }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="nav-btn next-btn" aria-label="Next products">&gt;</button>
+            </div>
+            
+            
+        </section>
+        <section class="product-section">
+            <div class="section-header">
+                <h2>WHAT'S NEW</h2>
+                <a href="{% url 'allproductshow' %}" class="view-all">View all</a>
+            </div>
+            <div class="product-slider">
+                <button class="nav-btn prev-btn" aria-label="Previous products">&lt;</button>
+                <div class="product-track" id="productTrack">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                {% with product.product_images.all as images %}
+                                {% if images %}
+                                    {% for image in images %}
+                                    <img src="{{ image.image_url }}" alt="{{ product.title }}" class="product-img {% if forloop.first %}active{% endif %}">
+                                    {% endfor %}
+                                    <div class="dot-navigation">
+                                        {% for image in images %}
+                                        <span class="dot {% if forloop.first %}active{% endif %}"></span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <img src="{% static 'placeholder.png' %}" alt="No Image Available" class="product-img">
+                                {% endif %}
+                                {% endwith %}
+                            </a>
+                        </div>
+            
+                        <div class="product-info">
+                            <div class="product-info-header">
+                                <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                                <h3>{{ product.title }}</h3>
+                                </a>
+                                {% csrf_token %}
+                                <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist(event, {{ product.id }})" title="Add to Wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="{% url 'product_detail' product.id %}" style="display: block; text-decoration: none; color: inherit;">
+                            <p class="material">
+                                {% if product.variants.first.color %}
+                                    {{ product.variants.first.color }}
+                                {% else %}
+                                    Material Not Specified
+                                {% endif %}
+                            </p>
+            
+                            <div class="price">
+                                {% if product.variants_list.0.is_offer %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.discounted_price }}</span>
+                                    <span class="original-price">₹ {{ product.variants_list.0.price }}</span>
+                                    <span class="discount-badge">
+                                        ₹{{ product.variants_list.0.offer_discount }} OFF
+                                    </span>
+                                {% else %}
+                                    <span class="current-price">₹ {{ product.variants_list.0.price }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="nav-btn next-btn" aria-label="Next products">&gt;</button>
+            </div>
+            
+            
+        </section>
+
+        
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>HELP</h3>
+                <div class="footer-links">
+                    <a href="/shipping">Shipping</a>
+                    <a href="/contact">Contact Us</a>
+                    <a href="/returns">Return & Exchange Policy</a>
+                    <a href="/warranty">Warranty</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>MENU</h3>
+                <div class="footer-links">
+                    <a href="/about">About me</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of service</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <div class="footer-logo">URBAN AEGIS</div>
+                <p>© 2024 - URBAN AEGIS JEWELRY</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'script/home.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - URBAN AEGIS</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .announcement-bar {
+            background: #000;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .header {
+            background: #808080;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .main-content {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .create-account-button {
+            background: #000;
+            color: white;
+            padding: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .login-link {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px;
+            margin-top: 100px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer-logo img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-links a {
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .copyright {
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .error-message {
+            color: #e74c3c;  /* Red text */
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-logo {
+                margin: 0 auto;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="announcement-bar">
+        FREE SHIPPING ON ORDERS ABOVE 75.00
+    </div>
+    
+    <header class="header">
+        <a href="#" class="logo">URBAN AEGIS</a>
+        <nav class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Best Seller</a>
+            <a href="#">Shop</a>
+            <a href="#">Contact</a>
+        </nav>
+        <div class="header-right">
+            <span>Search</span>
+            <span>Cart</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <form class="signup-form" method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            <h1 class="form-title">SIGN UP</h1>
+            <p class="form-subtitle">Please fill in the information below:</p>
+        
+            <div class="form-group">
+                {{ form.first_name }}
+                {% for error in form.first_name.errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+            </div>
+        
+            <div class="form-group">
+                {{ form.last_name }}
+                {% for error in form.last_name.errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+            </div>
+        
+            <div class="form-group">
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+            </div>
+        
+            <div class="form-group">
+                {{ form.password }}
+                {% for error in form.password.errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+            </div>
+        
+            <div class="form-group">
+                {{ form.password1 }}
+                {% for error in form.password1.errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+            </div>
+        
+            <button type="submit" class="create-account-button">CREATE ACCOUNT</button>
+        
+            <p class="login-link">
+                Already have an account? <a href="{% url 'login' %}">Login</a>
+            </p>
+        </form>
+        
+        
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <!-- Replace with actual logo -->
+                    <div style="font-size: 24px; font-weight: bold;">URBAN AEGIS</div>
+                </div>
+                <div class="copyright">© 2024 - URBAN AEGIS</div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>HELP</h3>
+                <div class="footer-links">
+                    <a href="#">Shipping</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Return & Exchange Policy</a>
+                    <a href="#">Exchange request</a>
+                    <a href="#">Warranty</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>MENU</h3>
+                <div class="footer-links">
+                    <a href="#">About me</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    {% if messages %}
+<script>
+    {% for message in messages %}
+        Toastify({
+            text: "{{ message }}", // Display the actual message
+            duration: 3000, // Show for 3 seconds
+            close: true, // Add a close button
+            gravity: "top", // Show the toast at the top
+            position: "center", // Align toast to the center
+            style: {
+                background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                color: "#fff", // Default white text for all messages
+                borderRadius: "8px", // Rounded corners
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+            }
+        }).showToast();
+    {% endfor %}
+</script>
+{% endif %}
+</body>
+
+
+</html>

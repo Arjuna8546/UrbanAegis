@@ -1,0 +1,408 @@
+{% extends "account_base.html" %}
+{% load static %}
+{% block breadcrum %}
+<div class="breadcrumb-path">Urban Angle > My Account > Orders</div>
+{% endblock breadcrum %}
+{% block body %}
+<body>
+    <div class="od-p-5 od-max-w-6xl od-mx-auto">
+        <h1 class="od-text-2xl od-font-semibold od-mb-6">Orders</h1>
+        
+    
+        {% for order in orders %}
+<div class="od-space-y-4">
+    <div class="od-flex od-items-center od-p-5 od-border od-border-gray-200 od-rounded-lg od-hover:shadow-md od-transition-shadow">
+        <!-- Product Image -->
+        {% if order.fetched_order_items.0.product_variant.product.product_images.exists %}
+            <img src="{{ order.fetched_order_items.0.product_variant.product.product_images.first.image_url|default:'/placeholder.svg?height=80&width=80' }}" 
+                 alt="{{ order.fetched_order_items.0.product_variant.product.title }}" 
+                 class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+        {% else %}
+            <img src="/placeholder.svg?height=80&width=80" alt="Placeholder" class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+        {% endif %}
+        
+        <div class="od-flex-1">
+            <!-- Product Title -->
+            <a href="{% url 'product_detail' order.fetched_order_items.0.product_variant.product.id %}" style="text-decoration: none; color: black;"><h2 class="od-font-semibold od-text-lg od-mb-1">
+                {{ order.fetched_order_items.0.product_variant.product.title }}
+            </h2>
+            
+            <!-- Order Details -->
+            <div class="od-text-sm od-text-gray-600 od-flex od-gap-4 od-mb-2">
+                <span>Ordered On: {{ order.created_at|date:"d M Y" }}</span>
+                <span class="od-font-semibold od-text-black">
+                    ₹{{ order.total_amount }}
+                </span>
+                
+            </div>
+            
+            <!-- Estimated Delivery -->
+            <div class="od-text-sm od-text-gray-600">
+                Estimated Delivery: {{ order.created_at|date:"d M Y"}}
+            </div>
+            <br>
+            <div class="od-text-sm od-text-gray-600 od-gap-4 od-mb-2" style="border-top: rgb(205, 205, 205) solid .5px; margin-right: 30px;">
+                <span class="od-font-mono" style="color: rgb(0, 133, 0);">Order ID: {{ order.order_id }}</span>
+            </div>
+        </a>
+        </div>
+        <div class="od-flex od-flex-col od-items-end od-gap-2">
+            <!-- Order Status -->
+            <span class="od-px-3 od-py-1 od-rounded-full od-text-xs od-font-medium 
+                         {{ order.status_of_order}}">
+                {{ order.status_of_order|title }}
+            </span>
+            <!-- Track Order Button -->
+            <!-- Conditional Button Rendering -->
+            {% if order.status_of_order in "pending Processing Shipped" %}
+                <button class="track-button" data-order-id="{{ order.uuid }}">Track Order</button>
+            {% elif order.status_of_order in "Delivered" %}
+            
+                <div style="display: flex; gap: 12px;">
+            
+                <button type="button" class="track-button" data-order-id="{{ order.uuid }}">View Order</button>
+                <a href="/account/orders/{{ order.uuid }}/return" class="return-button">
+                    Return Order
+                </a>
+            </div>
+            {% else %}
+                <button class="track-button" data-order-id="{{ order.uuid }}">View Order</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div id="returnOrderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px; text-align: center;">
+        <h2>Confirm Return</h2>
+        <p>Are you sure you want to return this order?</p>
+        
+        <!-- Reason Textarea -->
+        <form id="returnOrderForm" method="POST" action="/account/returnorder/{{ order.uuid }}/">
+            {% csrf_token %}
+
+            <h5 id="error" style="color: red; margin-bottom: 5px;"></h5>
+            <textarea name="reason" id="returnReason" placeholder="Enter the reason for returning this order" rows="4" style="width: 100%; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" ></textarea>
+            
+            <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                <button type="submit" id="confirmReturnButton" style="background-color: black; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">Yes</button>
+                <button type="button" id="cancelReturnButton" style="background-color: #ccc; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">No</button>
+            </div>
+        </form>
+    </div>
+</div>
+<br>
+
+{% empty %}
+<p class="od-text-gray-500">No orders found.</p>
+{% endfor %}
+<div class="custom-pagination">
+    <span class="step-links">
+        {% if orders.has_previous %}
+            <a href="?page=1" class="custom-link">&laquo; First</a>
+            <a href="?page={{ orders.previous_page_number }}" class="custom-link">Previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+        </span>
+
+        {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}" class="custom-link">Next</a>
+            <a href="?page={{ orders.paginator.num_pages }}" class="custom-link">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+<div id="order-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">Order Details</h2>
+        <div id="modal-details" class="modal-details">
+            <!-- Order details will be dynamically inserted here -->
+        </div>
+        <div class="confirmation-buttons">
+            <form method="post" id="cancel-form" action="">
+                {% csrf_token %}
+                <button id="cancel-button">Cancel Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="cancel-confirmation-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-confirmation">&times;</span>
+        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Are you sure you want to cancel/return this order?</h3>
+        <div class="confirmation-buttons">
+            <button id="confirm-cancel" style="background-color: black; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Yes, Cancel Order</button>
+            <button id="deny-cancel" style="background-color: #f3f4f6; color: #374151; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">No, Keep Order</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Reference elements
+const returnOrderButton = document.getElementById('returnOrderButton');
+const returnOrderModal = document.getElementById('returnOrderModal');
+const confirmReturnButton = document.getElementById('confirmReturnButton');
+const cancelReturnButton = document.getElementById('cancelReturnButton');
+const returnReason = document.getElementById('returnReason');
+const errorElement = document.getElementById('error');
+const returnOrderForm = document.getElementById('returnOrderForm');
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const cancelForm = document.getElementById("cancel-form");
+        const cancelButton = document.getElementById("cancel-button");
+        const cancelConfirmationModal = document.getElementById("cancel-confirmation-modal");
+        const confirmCancelButton = document.getElementById("confirm-cancel");
+        const closeCancelModalButton = document.getElementById("cancel-modal-close");
+        const closeConfirmationModal = document.querySelector(".close-confirmation");
+        const denyCancelButton = document.getElementById("deny-cancel");
+        const closeConfirmationButton = document.querySelector(".close-confirmation");
+
+        closeConfirmationButton.addEventListener("click", () => cancelConfirmationModal.style.display = "none");
+        denyCancelButton.addEventListener("click", () => cancelConfirmationModal.style.display = "none");
+    
+        const orderModal = document.getElementById("order-modal"); // Reference to the order details modal
+    
+        // Store the current form action URL for submission
+        let currentActionUrl = "";
+    
+        // Show confirmation modal when "Cancel/Return Order" button is clicked
+        cancelButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+            currentActionUrl = cancelForm.action; // Store the form action URL
+    
+            // Hide the order details modal
+            orderModal.style.display = "none";
+    
+            // Show the confirmation modal
+            cancelConfirmationModal.style.display = "block";
+        });
+    
+        // Handle "Confirm" button click
+        confirmCancelButton.addEventListener("click", function () {
+            cancelForm.action = currentActionUrl; // Restore the action URL
+            cancelForm.submit(); // Submit the form
+        });
+    
+        // Handle "Cancel" button click in confirmation modal
+        closeCancelModalButton.addEventListener("click", function () {
+            cancelConfirmationModal.style.display = "none"; // Close confirmation modal
+    
+            // Reopen the order details modal
+            orderModal.style.display = "block";
+        });
+    
+        // Handle close icon click in confirmation modal
+        closeConfirmationModal.addEventListener("click", function () {
+            cancelConfirmationModal.style.display = "none"; // Close confirmation modal
+    
+            // Reopen the order details modal
+            orderModal.style.display = "block";
+        });
+    
+        // Close confirmation modal when clicking outside the modal content
+        window.addEventListener("click", function (event) {
+            if (event.target === cancelConfirmationModal) {
+                cancelConfirmationModal.style.display = "none";
+    
+                // Reopen the order details modal
+                orderModal.style.display = "block";
+            }
+        });
+    });
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("order-modal");
+        const closeBtn = document.getElementsByClassName("close")[0];
+        const modalDetails = document.getElementById("modal-details");
+        var cancelForm = document.getElementById("cancel-form");
+
+        // Function to open the modal and fetch order details
+        function openModal(orderId) {
+            cancelForm.action = `/account/cancel/${orderId}/`;
+
+            fetch(`${orderId}/`) // Adjust the URL to match your Django endpoint
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Order details could not be fetched.");
+                    }
+                    return response.json();
+                })
+                .then(order => {
+                    // Check if the UUID is present in the response
+                    if (!order.uuid) {
+                        throw new Error("Order UUID is missing.");
+                    }
+                    let detailsHtml = `
+                    <div class="order-section">
+                        <h3 class="text-md font-semibold mb-4">Order Information</h3>
+                        <table class="table-auto w-full text-sm border-collapse">
+                            <tbody>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Order ID:</td>
+                                    <td class="px-4 py-2 text-gray-600 font-mono">${order.order_id}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Total Amount:</td>
+                                    <td class="px-4 py-2 text-gray-600">₹${order.total}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Discount:</td>
+                                    <td class="px-4 py-2 text-gray-600">₹${order.discount}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Subtotal:</td>
+                                    <td class="px-4 py-2 text-gray-600">₹${order.subtotal}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="order-section">
+                        <h3 class="text-md font-semibold mb-4">Customer Details</h3>
+                        <table class="table-auto w-full text-sm border-collapse">
+                            <tbody>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Name:</td>
+                                    <td class="px-4 py-2 text-gray-600">${order.customer_name}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Email:</td>
+                                    <td class="px-4 py-2 text-gray-600">${order.customer_email}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Phone:</td>
+                                    <td class="px-4 py-2 text-gray-600">${order.customer_phone}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="order-section">
+                        <h3 class="text-md font-semibold mb-4">Order Status</h3>
+                        <table class="table-auto w-full text-sm border-collapse">
+                            <tbody>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Order Date:</td>
+                                    <td class="px-4 py-2 text-gray-600">${order.order_date}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Order Status:</td>
+                                    <td class="px-4 py-2">
+                                        <span class="status-tag status-${order.status_of_order}">${order.status}</span>
+                                        
+                                    </td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Payment Method:</td>
+                                    <td class="px-4 py-2 text-gray-600">${order.payment_method}</td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="px-4 py-2 font-bold text-gray-700">Payment Status:</td>
+                                    <td class="px-4 py-2 text-gray-600 flex justify-between items-center">
+                                         ${order.payment_status}
+                                        ${(order.payment_status === "pending" && order.status !== "Cancelled" || order.payment_status === "failed") ? `
+                                            <a href="/account/orders/payment/${order.uuid}/complete" 
+                                            class="complete-payment-link">
+                                                Complete Payment
+                                            </a>` : ''}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="order-section">
+                        <h3 class="text-md font-semibold mb-4">Shipping Address</h3>
+                        <div class="address-card">
+                            <p class="address">
+                                ${order.shipping_address}<br>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="order-section">
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 class="text-md font-semibold" style="margin: 0;">Order Items</h3>
+                            <form method="get" action="/account/downloadinvoice/${order.uuid}/" target="_blank" style="margin: 0;">
+                                <button type="submit" class="invoice-button" style="background-color: black; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">
+                                    <i class="fas fa-download"></i> Download Invoice
+                                </button>
+                            </form>
+                        </div>
+
+                    `;
+
+                    // Loop through order items and append details
+                    order.items.forEach(item => {
+                        detailsHtml += `
+                        <div class="order-item">
+                            <div class="item-details">
+                                <div class="item-main">
+                                    <h4 class="item-name">${item.product_name}</h4>
+                                    <div class="item-meta">
+                                        <span>Color: ${item.color}</span>
+                                        <span>Size: ${item.size}</span>
+                                    </div>
+                                </div>
+                                <div class="item-price">
+                                    <div class="price-details">
+                                        <span class="unit-price">Unit Price: ₹ ${item.product_price}</span>
+                                        <span class="quantity">Quantity: ${item.quantity}</span>
+                                        <span class="total-price">Total: ₹ ${item.item_total}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `
+                        ;
+                    });
+                   
+
+                    // Conditionally show buttons based on status
+                if (["pending", "Processing", "Shipped"].includes(order.status)) {
+                    cancelForm.style.display = "block"; // Show form
+                } else {
+                    cancelForm.style.display = "none"; // Hide form
+                }
+
+
+                    // Update modal content and show modal
+                    modalDetails.innerHTML = detailsHtml;
+                    modal.style.display = "block";
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        }
+
+        // Open modal when "Track Order" button is clicked
+        document.addEventListener("click", function (event) {
+            if (event.target.classList.contains("track-button")) {
+                const orderId = event.target.getAttribute("data-order-id");
+                openModal(orderId);
+            }
+        });
+
+        // Close modal
+        closeBtn.onclick = function () {
+            modal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+    });
+</script>
+
+<br>
+
+</body>
+{% endblock body %}

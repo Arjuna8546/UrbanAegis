@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Aegis Admin Login</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+        }
+        .header {
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            font-weight: bold;
+            color: #333;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #333;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100% - 50px);
+        }
+        .login-form {
+            width: 300px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #12161f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-btn:hover {
+            background-color: #1a2130;
+        }
+        .lerror{
+            color:red;
+            font-size:12px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-title">URBAN AEGIS</div>
+        <button class="logout-btn">LOGOUT</button>
+    </header>
+    <div class="container">
+        <form class="login-form" method="POST" action="{% url 'admin_login' %}">
+            {% csrf_token %}
+            <h2 class="form-title">Admin</h2>
+           
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required class="form-control">
+                {% if form.email.errors %}
+                    <div class="error">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="form-control">
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}", // Display the actual message
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the center
+                style: {
+                    background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                    color: "#fff", // Default white text for all messages
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                }
+            }).showToast();
+        {% endfor %}
+    </script>
+{% endif %}
+</body>
+</html>

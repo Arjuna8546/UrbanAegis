@@ -1,0 +1,379 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+
+{% block breadcrum %}<div class="breadcrumb-path">Urban Angle > My Account > Wishlist</div>{% endblock breadcrum %}
+{% block body %}
+<body>
+    <div class="od-p-5 od-max-w-6xl od-mx-auto">
+        <h1 class="od-text-2xl od-font-semibold od-mb-6">My Wishlist</h1>
+        
+
+        {% for item in wishlists %}
+        <div class="od-space-y-4">
+            <div class="od-flex od-items-center od-p-5 od-border od-border-gray-200 od-rounded-lg od-hover:shadow-md od-transition-shadow">
+                <!-- Product Image -->
+                {% if item.product.product_images.exists %}
+                    <img src="{{ item.product.product_images.first.image_url|default:'/placeholder.svg?height=80&width=80' }}" 
+                         alt="{{ item.product.title }}" 
+                         class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+                {% else %}
+                    <img src="/placeholder.svg?height=80&width=80" alt="Placeholder" class="od-w-20 od-h-20 od-object-cover od-rounded od-mr-5">
+                {% endif %}
+                
+                <div class="od-flex-1">
+                    <!-- Product Title -->
+                    <a href="{% url 'product_detail' item.product.id %}" style="text-decoration: none; color: black;">
+                        <h2 class="od-font-semibold od-text-lg od-mb-1">
+                            {{ item.product.title }}
+                        </h2>
+                        
+                        <!-- Product Details -->
+                        {% if item.product.variants.first.is_offer %}
+                            <span class="od-font-semibold od-text-black" >
+                                ₹{{ item.product.variants.first.price }}
+                            </span>
+                            <div style="display: inline-block; background-color: red; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em;">
+                                Save ₹{{ item.product.variants.first.offer_discount }}
+                            </div>
+                        {% else %}
+                            <span class="od-font-semibold od-text-black">
+                                ₹{{ item.product.variants.first.price }}
+                            </span>
+                        {% endif %}
+                        
+                        <!-- Product Description -->
+                        <div class="od-text-sm od-text-gray-600">
+                            {{ item.product.description|truncatechars:100 }}
+                        </div>
+                    </a>
+                    
+                </div>
+                <div class="od-flex od-flex-col od-items-end od-gap-2">
+                    <!-- Action Buttons -->
+                    {% csrf_token %}
+                    
+                    
+                        <button class="wishlist-btn {% if item.product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ item.product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <button class="wishlist-add-cart" 
+                            onclick='openModal({{ item.product.id }}, "{{ item.product.title }}", JSON.parse(`{{ item.product.variants_json|escapejs }}`))'>
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+        <br>
+        {% empty %}
+        <p class="od-text-gray-500">Your wishlist is empty.</p>
+        {% endfor %}
+        <div class="custom-pagination">
+            <span class="step-links">
+                {% if wishlists.has_previous %}
+                    <a href="?page=1" class="custom-link">&laquo; First</a>
+                    <a href="?page={{ wishlists.previous_page_number }}" class="custom-link">Previous</a>
+                {% endif %}
+    
+                <span class="current">
+                    Page {{ wishlists.number }} of {{ wishlists.paginator.num_pages }}
+                </span>
+    
+                {% if wishlists.has_next %}
+                    <a href="?page={{ wishlists.next_page_number }}" class="custom-link">Next</a>
+                    <a href="?page={{ wishlists.paginator.num_pages }}" class="custom-link">Last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    <!-- Modal Template -->
+    <div id="cartModal" class="cart-modal od-hidden">
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle"></h3>
+                <button onclick="closeModal()" class="close-button">
+                    <p style="color: white;">X</p>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form id="addToCartForm" class="modal-form">
+                <input type="hidden" id="productId" name="product_id">
+                
+                <div class="form-group">
+                    <label class="form-label">Size</label>
+                    <select name="size" id="sizeSelect" class="form-select">
+                        <option value="">Select Size</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <select name="color" id="colorSelect" class="form-select">
+                        <option value="">Select Color</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <div class="quantity-control">
+                        <button type="button" onclick="decrementQuantity()" class="quantity-button">
+                            -
+                        </button>
+                        <input type="number" name="quantity" id="quantityInput" min="1" value="1" 
+                               class="quantity-input" readonly>
+                        <button type="button" onclick="incrementQuantity()" class="quantity-button">
+                            +
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal()" class="cancel-button">
+                        Cancel
+                    </button>
+                    <button type="submit" class="submit-button">
+                        Add to Cart
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    function toggleWishlist(productId) {
+        const btn = event.currentTarget;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const formData = new FormData();
+        formData.append('product_id', productId);
+    
+        fetch('/wishlist/toggle/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+        if (data.status === 'success') {
+            btn.classList.toggle('active');
+            // Optional: Show a success message
+            // console.log(data.message);
+            Toastify({
+                text: data.message, // Display the message from the response
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the right
+                style: {
+                    background: "linear-gradient(to right, #28a745, #5cd85d)", // Success style
+                    color: "#fff", // White text
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                },
+            }).showToast();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Optional: Show an error message to the user
+        Toastify({
+            text: "An error occurred. Please try again.",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            style: {
+                background: "linear-gradient(to right, #dc3545, #ff6b6b)", // Error style
+                color: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)"
+            },
+        }).showToast();
+    });
+    }
+    // Modal functions
+    function openModal(productId, productTitle, variants) {
+        console.log('Opening modal for product:', productId);
+        console.log('Variants:', variants);  // Debug log
+        
+        const modal = document.getElementById('cartModal');
+       modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        
+        document.getElementById('productId').value = productId;
+        document.getElementById('modalTitle').textContent = productTitle;
+
+        // Reset quantity
+        document.getElementById('quantityInput').value = 1;
+
+        // Get unique sizes and colors from variants
+        const uniqueSizes = [...new Set(variants.map(v => v.size))].filter(Boolean);
+        const uniqueColors = [...new Set(variants.map(v => v.color))].filter(Boolean);
+
+        // Populate size dropdown
+        const sizeSelect = document.getElementById('sizeSelect');
+        sizeSelect.innerHTML = '<option value="">Select Size</option>';
+        uniqueSizes.forEach(size => {
+            const option = document.createElement('option');
+            option.value = size;
+            option.textContent = size;
+            sizeSelect.appendChild(option);
+        });
+
+        // Populate color dropdown
+        const colorSelect = document.getElementById('colorSelect');
+        colorSelect.innerHTML = '<option value="">Select Color</option>';
+        uniqueColors.forEach(color => {
+            const option = document.createElement('option');
+            option.value = color;
+            option.textContent = color;
+            colorSelect.appendChild(option);
+        });
+
+        // Store variants data for later use
+        window.currentVariants = variants;
+        
+        // Update available colors when size changes
+        sizeSelect.onchange = function() {
+            updateAvailableColors(variants);
+        };
+
+        // Update available sizes when color changes
+        colorSelect.onchange = function() {
+            updateAvailableSizes(variants);
+        };
+    }
+    
+    function closeModal() {
+        const modal = document.getElementById('cartModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    function incrementQuantity() {
+        const input = document.getElementById('quantityInput');
+        input.value = parseInt(input.value) + 1;
+    }
+
+    function decrementQuantity() {
+        const input = document.getElementById('quantityInput');
+        const newValue = parseInt(input.value) - 1;
+        if (newValue >= 1) {
+            input.value = newValue;
+        }
+    }
+
+    function updateAvailableColors(variants) {
+        const selectedSize = document.getElementById('sizeSelect').value;
+        const availableColors = [...new Set(variants
+            .filter(v => v.size === selectedSize)
+            .map(v => v.color))];
+
+        const colorSelect = document.getElementById('colorSelect');
+        const currentColor = colorSelect.value;
+        
+        colorSelect.innerHTML = '';
+        availableColors.forEach(color => {
+            const option = document.createElement('option');
+            option.value = color;
+            option.textContent = color;
+            if (color === currentColor) {
+                option.selected = true;
+            }
+            colorSelect.appendChild(option);
+        });
+    }
+
+    function updateAvailableSizes(variants) {
+        const selectedColor = document.getElementById('colorSelect').value;
+        const availableSizes = [...new Set(variants
+            .filter(v => v.color === selectedColor)
+            .map(v => v.size))];
+
+        const sizeSelect = document.getElementById('sizeSelect');
+        const currentSize = sizeSelect.value;
+        
+        sizeSelect.innerHTML = '';
+        availableSizes.forEach(size => {
+            const option = document.createElement('option');
+            option.value = size;
+            option.textContent = size;
+            if (size === currentSize) {
+                option.selected = true;
+            }
+            sizeSelect.appendChild(option);
+        });
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('cartModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+
+        // Handle form submission
+        document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+            // Convert FormData to JSON
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+    
+            fetch('/cart/add-modal/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal();
+                    // Show success message
+                    Toastify({
+                text: data.message, // Display the message from the response
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the right
+                style: {
+                    background: "linear-gradient(to right, #28a745, #5cd85d)", // Success style
+                    color: "#fff", // White text
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                },
+            }).showToast();
+
+                } else {
+                    // Show error message
+                    alert(data.message || 'Error adding to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding to cart');
+            });
+        });
+    
+</script>
+</body>
+{% endblock body %}

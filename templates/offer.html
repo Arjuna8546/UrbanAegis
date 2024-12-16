@@ -1,0 +1,214 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_css %}
+
+<link href="{% static 'css/offer.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+    </header>
+    <div class="breadcrumb">
+        Admin > Coupon
+    </div>
+    <div class="container">
+        <div class="header2">
+            <h1>{{ title }}</h1>
+            <button class="button button-primary" onclick="toggleForm()">
+                <i class="fas fa-plus"></i>Add New Offer
+            </button>
+        </div>
+    
+
+    
+        <!-- Offer Form Section -->
+        <div class="collapse {% if form.errors %}show{% endif %}" id="offerForm">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <i class="fas fa-edit"></i>
+                    <span>Offer Details</span>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% if object %}{% url 'edit_offer' object.pk %}{% else %}{% url 'add_offer' %}{% endif %}">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="{{ form.discount_type.id_for_label }}">Discount Type</label>
+                                {{ form.discount_type }}
+                                {% if form.discount_type.errors %}
+                                <div class="text-danger">{{ form.discount_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.discount_value.id_for_label }}">Discount Value</label>
+                                {{ form.discount_value }}
+                                {% if form.discount_value.errors %}
+                                <div class="text-danger">{{ form.discount_value.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            
+                            <div class="form-group">
+                                <label for="{{ form.product.id_for_label }}">Product</label>
+                                {{ form.product }}
+                                <span class="help-text">Select a product for product-specific offer</span>
+                                {% if form.product.errors %}
+                                <div class="text-danger">{{ form.product.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.category.id_for_label }}">Category</label>
+                                {{ form.category }}
+                                <span class="help-text">Select a category for category-wide offer</span>
+                                {% if form.category.errors %}
+                                <div class="text-danger">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.status.id_for_label }}">Status</label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <div class="text-danger">{{ form.status.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.description.id_for_label }}">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+    
+                        <div class="form-actions">
+                            <button type="submit" class="button button-primary">
+                                {% if object %}Update{% else %}Save{% endif %} Offer
+                            </button>
+                            <button type="button" class="button button-secondary" onclick="toggleForm()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Offers List Section -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table"></i>
+                <span>Offers List</span>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Applied To</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offer in offers %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ offer.discount_value }}{% if offer.discount_type == 'percentage' %}%{% endif %}</td>
+                                <td>
+                                    <span class="badge {% if offer.status == 'active' %}badge-success{% else %}badge-danger{% endif %}">
+                                        {{ offer.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if offer.product %}
+                                        Product: {{ offer.product.title }}
+                                    {% elif offer.category %}
+                                        Category: {{ offer.category.name }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="button button-primary" onclick="editOffer({{ offer.id }})">
+                                        Edit
+                                    </button>
+                                    <button class="button button-danger" onclick="deleteOffer({{ offer.pk }})">
+                                        Delet
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleForm() {
+        const form = document.getElementById('offerForm');
+        form.classList.toggle('show');
+    }
+
+    function editOffer(offerId) {
+        window.location.href = `/offer/${offerId}/edit/`;
+    }
+
+    function deleteOffer(offerId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/offer/${offerId}/delete/`;
+        }
+    });
+}
+
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: 'Select an option',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Clear other field when one is selected
+        $('#id_product').on('change', function() {
+            if ($(this).val()) {
+                $('#id_category').val(null).trigger('change');
+            }
+        });
+
+        $('#id_category').on('change', function() {
+            if ($(this).val()) {
+                $('#id_product').val(null).trigger('change');
+            }
+        });
+    });
+</script>
+{% endblock %}

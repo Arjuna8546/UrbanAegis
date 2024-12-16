@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<br>
+<div class="container">
+    <div class="cart-container">
+        {% csrf_token %}
+        <h1>Your cart</h1>
+        <div id="cart-items" class="cart-items">
+            <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+            <!-- Cart items will be dynamically inserted here -->
+        </div>
+    </div>
+    <div class="order-summary">
+        <h2>Order Summary</h2>
+        <div class="summary-item">
+            <span>Subtotal</span>
+            <span id="subtotal">₹0.00</span>
+        </div>
+        <div class="summary-item">
+            <span>Shipping</span>
+            <span class="free-shipping">Free</span>
+        </div>
+        <div class="summary-item">
+            <span>Tax</span>
+            <span id="tax">₹0.00</span>
+        </div>
+        <div class="summary-item total">
+            <span>Total</span>
+            <span id="total">₹0.00</span>
+        </div>
+        
+        {% if cart_data  %}<button class="checkout-btn" onclick="window.location.href='{% url 'checkout'  %}'">Checkout</button>{% endif %}
+        <a href="{% url 'home' %}" class="continue-shopping" onclick="continueShopping(event)">Continue Shopping</a>
+    </div>
+</div>
+<br>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    let cart = {{ cart_data|safe }};
+    const taxRate = {{ tax_rate }};
+</script>
+<script src="{% static 'script/cart.js' %}"></script> <!-- External JavaScript -->
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/orderdetail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+    </header>
+    <div class="breadcrumb">
+        Admin > Orders
+    </div>
+    <div class="header1">
+        <h1>Orders</h1>
+        <div class="search-container">
+            <form method="get" action="{% url 'detailorder' %}" class="search-form">
+                <input type="text" class="search-input" name="search" value="{{ search_query }}" placeholder="Search......." />
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+            
+        </div>
+        
+        
+    </div>
+    <div class="container">
+        
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Order ID</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    {% with order.order_items.first as item %}
+                        <tr onclick="window.location.href='{% url 'specific_order_detail' order.id %}'" style="cursor: pointer;">
+                            <td data-label="Image">
+                                <div class="order-image">
+                                    {% if item %}
+                                        {% with item.product_variant.product.product_images.first as image %}
+                                            {% if image %}
+                                                <img src="{{ image.image_url }}" alt="{{ item.product_variant.product.title }}" style="width: 50px; height: 50px; border-radius: 4px;">
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </td>
+            
+                            <td data-label="Order">
+                                {% if item %}
+                                    {{ item.product_variant.product.title }}
+                                {% else %}
+                                    No items
+                                {% endif %}
+                            </td>
+                            <td data-label="Date">
+                                {{ order.created_at|date:"d M, Y" }}
+                            </td>
+                            <td data-label="Total">
+                                ₹{{ order.total_amount|floatformat:2 }}
+                            </td>
+                            <td data-label="Status">
+                                <span class="status status_of_order-{{ order.status_of_order|lower }}">
+                                    {{ order.status_of_order }}
+                                </span>
+                            </td>
+                            <td data-label="Order ID" style="color: green; font-size: small;">
+                                {{ order.order_id }}
+                            </td>
+                        </tr>
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+            
+        </table>
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if has_previous %}
+                <a href="?page=1" class="page-link">&laquo; First</a>
+                <a href="?page={{ previous_page_number }}" class="page-link">&lsaquo; Previous</a>
+            {% endif %}
+
+            {% for page_number in page_range %}
+                {% if page_number == page_obj.number %}
+                    <span class="page-link current">{{ page_number }}</span>
+                {% elif page_number == '...' %}
+                    <span class="page-link disabled">...</span>
+                {% else %}
+                    <a href="?page={{ page_number }}" class="page-link">{{ page_number }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if has_next %}
+                <a href="?page={{ next_page_number }}" class="page-link">Next &rsaquo;</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+    
+{% block scripts %}{% endblock %}
+

@@ -1,0 +1,195 @@
+{% extends "account_base.html" %}
+
+
+{% block breadcrum %}
+<div class="breadcrumb-path">Urban Angle > My Account > Address</div>
+{% endblock breadcrum %}
+
+{% block body %}
+<body>
+    <div class="am-container">
+        <div class="am-address-grid">
+            <div class="am-address-section">
+                <h2 class="am-heading">Shipping Address</h2>
+                
+                <form method="post" action="{% url 'addressdetail' %}">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="am-form-group">
+                        {{ form.street_address.label_tag }}
+                        {{ form.street_address }}
+                        <div class="error">{{ form.street_address.errors }}</div>
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            {{ form.city.label_tag }}
+                            {{ form.city }}
+                            <div class="error">{{ form.city.errors }}</div>
+                        </div>
+                        <div class="am-form-group">
+                            {{ form.state.label_tag }}
+                            {{ form.state }}
+                            <div class="error">{{ form.state.errors }}</div>
+                        </div>
+                    </div>
+                    <div class="am-form-row">
+                        <div class="am-form-group">
+                            {{ form.pin_code.label_tag }}
+                            {{ form.pin_code }}
+                            <div class="error">{{ form.pin_code.errors }}</div>
+                        </div>
+                        <div class="am-form-group">
+                            {{ form.country.label_tag }}
+                            {{ form.country }}
+                            <div class="error">{{ form.country.errors }}</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="am-btn am-btn-primary">Save Changes</button>
+                </form>
+            </div>
+            
+        </div>
+        <br>
+        <h2 class="card-title">Saved Address</h2>
+        <br>
+        <div>
+            {% for address in addresses %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"></h2>
+                    <form method="POST" action="{% url 'set_default_address' address.id%}">
+                        {% csrf_token %}
+                        <div class="toggle-container">
+                            <label class="toggle" for="default-address-{{ address.id }}">
+                                <input 
+                                    type="checkbox" 
+                                    id="default-address-{{ address.id }}" 
+                                    name="default_address" 
+                                    value="{{ address.id }}" 
+                                    {% if address.is_default %}checked{% endif %}
+                                    onchange="this.form.submit()">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="toggle-label">Default Address</span>
+                        </div>
+                    </form>
+                </div>
+                <div class="address-info">
+                    <div class="address-row">
+                        <span class="address-label">Street:</span>
+                        <span class="address-value">{{address.street_address}}</span>
+                    </div>
+                    <div class="address-row">
+                        <span class="address-label">City:</span>
+                        <span class="address-value">{{address.city}}</span>
+                    </div>
+                    <div class="address-row">
+                        <span class="address-label">State:</span>
+                        <span class="address-value">{{address.state}}</span>
+                    </div>
+                    <div class="address-row">
+                        <span class="address-label">Pin Code:</span>
+                        <span class="address-value">{{address.pin_code}}</span>
+                    </div>
+                    <div class="address-row">
+                        <span class="address-label">Country:</span>
+                        <span class="address-value">{{address.country}}</span>
+                    </div>
+                    <div class="button-container">
+                        <a class="button button-edit edit-address-btn" onclick="openEditModal(
+                            '{{ address.id }}',  
+                            '{{ address.street_address }}', 
+                            '{{ address.city }}', 
+                            '{{ address.state }}', 
+                            '{{ address.pin_code }}', 
+                            '{{ address.country }}'
+                        )">
+                            Edit
+                        </a>
+                        <a class="button button-delete" href="{% url 'deleteaddress' address.id %}" style="text-decoration: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <br>
+            {% endfor %}
+        </div>
+        
+    </div>
+    <div id="addressModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 class="am-heading">Edit Address</h2>
+            <form id="newAddressForm" method="post" action="{% url 'updateaddress' %}">
+                {% csrf_token %}
+                
+                <input type="hidden" name="address_id" id="address-id">
+                
+                <div class="am-form-row">
+                    <div class="am-form-group">
+                        <label class="am-label" for="new-street">Street Address</label>
+                        <input class="am-input" type="text" id="new-street" name="street_address" required>
+                        <small class="text-danger" id="error-street-address"></small>
+                    </div>
+                    <div class="am-form-group">
+                        <label class="am-label" for="new-city">City</label>
+                        <input class="am-input" type="text" id="new-city" name="city" required>
+                        <small class="text-danger" id="error-city"></small>
+                    </div>
+                </div>
+        
+                <div class="am-form-row">
+                    <div class="am-form-group">
+                        <label class="am-label" for="new-state">State</label>
+                        <input class="am-input" type="text" id="new-state" name="state" required>
+                        <small class="text-danger" id="error-state"></small>
+                    </div>
+                    <div class="am-form-group">
+                        <label class="am-label" for="new-zip">ZIP Code</label>
+                        <input class="am-input" type="text" id="new-zip" name="zip_code" required>
+                        <small class="text-danger" id="error-zip"></small>
+                    </div>
+                </div>
+        
+                <div class="am-form-group">
+                    <label class="am-label" for="new-country">Country</label>
+                    <input class="am-input" type="text" id="new-country" name="country" required>
+                    <small class="text-danger" id="error-country"></small>
+                </div>
+                
+                <button class="am-btn am-btn-primary" type="submit">Edit Address</button>
+            </form>
+        </div>
+    </div>
+    
+    
+</body>
+<script>
+      // Function to open the modal and populate the form fields
+function openEditModal(addressId, street, city, state, zip, country) {
+    // Set the address ID in the hidden input
+    document.getElementById("address-id").value = addressId;
+    
+    // Populate the rest of the form fields
+
+    document.getElementById("new-street").value = street;
+    document.getElementById("new-city").value = city;
+    document.getElementById("new-state").value = state;
+    document.getElementById("new-zip").value = zip;
+    document.getElementById("new-country").value = country;
+
+    // Show the modal
+    document.getElementById("addressModal").style.display = "block";
+}
+
+// Function to close the modal
+function closeModal() {
+    document.getElementById("addressModal").style.display = "none";
+}
+
+</script>
+{% endblock body %}

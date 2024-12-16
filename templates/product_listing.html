@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header1">
+        <div class="search-container">
+            <div>
+            <input type="text" placeholder="Search products" class="search-input" name="searchinput">
+            </div>
+            <button class="search-btn filter-btn">Search</button>
+        </div>
+        <div class="sort-filter">
+            <select class="sort-select" id="sortSelect">
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name-asc">A to Z</option>
+                <option value="name-desc">Z to A</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div id="v0FilterOptionsWrapper" class="v0-filter-options-wrapper">
+            <div id="v0FilterOptions" class="v0-filter-options">
+                <div class="v0-filter-section">
+                    <h4 class="v0-filter-heading">Categories</h4>
+                    <div class="v0-checkbox-group">
+                        {% for category in active_categories %}
+                            <label class="v0-checkbox-container">
+                                <input type="checkbox" name="category" value="{{ category.name }}" id="{{ category.name|slugify }}-checkbox">
+                                <span class="v0-checkmark"></span>
+                                {{ category.name }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+        
+                <div class="v0-filter-section">
+                    <h4 class="v0-filter-heading">Color</h4>
+                    <div class="v0-color-options">
+                        <label class="v0-color-option">
+                            <input type="radio" name="color" value="silver">
+                            <span class="v0-color-swatch" style="background-color: silver;"></span>
+                            Silver
+                        </label>
+                        <label class="v0-color-option">
+                            <input type="radio" name="color" value="gold">
+                            <span class="v0-color-swatch" style="background-color: gold;"></span>
+                            Gold
+                        </label>
+                        <label class="v0-color-option">
+                            <input type="radio" name="color" value="pearl">
+                            <span class="v0-color-swatch" style="background-color: pearl;"></span>
+                            Pearl
+                        </label>
+                    </div>
+                </div>
+        
+                <div class="v0-filter-section">
+                    <h4 class="v0-filter-heading">Size</h4>
+                    <div class="v0-size-options">
+                        <label class="v0-size-option">
+                            <input type="checkbox" name="size" value="S">
+                            <span class="v0-size-box">S</span>
+                        </label>
+                        <label class="v0-size-option">
+                            <input type="checkbox" name="size" value="M">
+                            <span class="v0-size-box">M</span>
+                        </label>
+                        <label class="v0-size-option">
+                            <input type="checkbox" name="size" value="L">
+                            <span class="v0-size-box">L</span>
+                        </label>
+                        <label class="v0-size-option">
+                            <input type="checkbox" name="size" value="XL">
+                            <span class="v0-size-box">XL</span>
+                        </label>
+                        <label class="v0-size-option">
+                            <input type="checkbox" name="size" value="XXL">
+                            <span class="v0-size-box">XXL</span>
+                        </label>
+                    </div>
+                </div>
+        
+                <div class="v0-filter-section">
+                    <h4 class="v0-filter-heading">Price</h4>
+                    <div class="v0-price-slider-container">
+                        <input type="range" id="v0PriceSlider" name="price" min="0" max="1000" value="1000" class="v0-price-slider">
+                        <div class="v0-price-labels">
+                            <span>$0</span>
+                            <span id="v0CurrentPrice">$500</span>
+                            <span>$1000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+        .v0-filter-options-wrapper {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .v0-filter-options {
+            background-color: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .v0-filter-section {
+            margin-bottom: 20px;
+        }
+        
+        .v0-filter-heading {
+            color: #000;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .v0-checkbox-container {
+            display: block;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .v0-checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .v0-checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 25px;
+            width: 25px;
+            background-color: #fff;
+            border: 2px solid #000;
+            border-radius: 4px;
+        }
+        
+        .v0-checkbox-container:hover input ~ .v0-checkmark {
+            background-color: #f0f0f0;
+        }
+        
+        .v0-checkbox-container input:checked ~ .v0-checkmark {
+            background-color: #000;
+        }
+        
+        .v0-checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .v0-checkbox-container input:checked ~ .v0-checkmark:after {
+            display: block;
+        }
+        
+        .v0-checkbox-container .v0-checkmark:after {
+            left: 9px;
+            top: 5px;
+            width: 5px;
+            height: 10px;
+            border: solid #fff;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+        
+        .v0-color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .v0-color-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .v0-color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 5px;
+            border: 2px solid #000;
+            transition: all 0.3s ease;
+        }
+        
+        .v0-color-option input {
+            display: none;
+        }
+        
+        .v0-color-option input:checked + .v0-color-swatch {
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000, 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .v0-size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .v0-size-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .v0-size-box {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border: 2px solid #000;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+        
+        .v0-size-option input {
+            display: none;
+        }
+        
+        .v0-size-option input:checked + .v0-size-box {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .v0-price-slider-container {
+            padding: 10px 0;
+        }
+        
+        .v0-price-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        
+        .v0-price-slider:hover {
+            opacity: 1;
+        }
+        
+        .v0-price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #000;
+            cursor: pointer;
+        }
+        
+        .v0-price-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #000;
+            cursor: pointer;
+        }
+        
+        .v0-price-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #000;
+        }
+        
+        .v0-filter-submit-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .v0-filter-submit-btn:hover {
+            background-color: #333;
+        }
+        /* Container for the dropdown */
+.sort-filter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for the select dropdown */
+.sort-select {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 10px 20px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #000;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s;
+}
+
+/* Hover and focus effects */
+.sort-select:hover, .sort-select:focus {
+    border-color: #333;
+    color: #333;
+}
+
+/* Style for the options */
+.sort-select option {
+    background-color: #fff;
+    color: #000;
+    padding: 10px;
+}
+
+/* Add a subtle transition when hovering over options */
+.sort-select option:hover {
+    background-color: #f1f1f1;
+}
+
+/* Style for the caret icon (dropdown arrow) */
+.sort-select::-ms-expand {
+    display: none; /* Remove default caret in IE */
+}
+
+/* Custom style for dropdown arrow using a background image */
+.sort-select {
+    -webkit-appearance: none; /* Remove default dropdown arrow */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M6 9l6 6 6-6" /%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    padding-right: 30px; /* Space for the arrow */
+}
+
+        </style>
+        <form id="csrf-token-form">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        </form>
+       
+        <input type="hidden" id="initial-category" value="{{ initial_category|default:'' }}">
+        <div id="product-grid-container" class="product-grid">
+            {% include 'partail_product_grid.html' %}
+        </div>
+    </div>
+</div>
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+
+<style>
+
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+}
+
+.filter-options {
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 40px);
+    overflow-y: auto;
+    flex: 0 0 250px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: black;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.pagination a {
+    display: inline-block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #fff;
+    background-color: #444;
+    border: 1px solid #666;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination a:hover {
+    background-color: #fff;
+    color: #000;
+    border-color: #fff;
+}
+
+.pagination span {
+    font-size: 14px;
+    padding: 8px 12px;
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.pagination a[aria-disabled="true"],
+.pagination a.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.product-image img {
+    transition: opacity 0.5s ease-in-out;
+    position: absolute;
+    width: 100%;
+}
+
+.product-card {
+    position: relative;
+    overflow: hidden;
+}
+
+
+.search-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    flex-grow: 1;
+    margin-right: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background-color:rgb(0, 0, 0);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color:rgb(65, 65, 65);
+}
+
+.wishlist-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn svg {
+    stroke: black;
+    fill: none;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn.active svg {
+    stroke: red;
+    fill: red;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .filter-options {
+        position: static;
+        height: auto;
+        width: 100%;
+    }
+}
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+    function loadAllProducts(initialCategory = null) {
+        // Gather filter parameters from the UI
+        const selectedCategories = initialCategory
+            ? [initialCategory] // Use the initial category if provided
+            : $('input[name="category"]:checked').map(function () {
+                  return $(this).val();
+              }).get();
+
+        const selectedColor = $('input[name="color"]:checked').val();
+        const selectedSizes = $('input[name="size"]:checked').map(function () {
+            return $(this).val();
+        }).get();
+
+        const minPrice = 0; // Assuming min price is fixed at 0
+        const maxPrice = $('#v0PriceSlider').val(); // Get value from the price slider
+        const searchInput = $('input[name="searchinput"]').val(); // Get value from the search input
+        const sortOption = $('#sortSelect').val(); // Get the selected sort option by ID
+
+
+        $.ajax({
+            url: '{% url "load_all_products" %}',
+            type: 'GET',
+            data: {
+                category: selectedCategories.length ? selectedCategories.join(',') : null,
+                color: selectedColor || null,
+                size: selectedSizes.length ? selectedSizes.join(',') : null,
+                min_price: minPrice,
+                max_price: maxPrice,
+                search: searchInput || null,
+                sort: sortOption || null,
+            },
+            success: function (response) {
+                $('#product-grid-container').html(response.html);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error loading products:', error);
+            },
+        });
+    }
+
+    // Check for the initial category
+    const initialCategory = $('#initial-category').val();
+    if (initialCategory) {
+        // If there's an initial category, load products for that category
+        loadAllProducts(initialCategory);
+    } else {
+        // Load products initially without filters
+        loadAllProducts();
+    }
+
+    // Add event listeners to filter inputs to reload products on change
+    $('#v0FilterOptionsWrapper input, .search-input').change(function () {
+        loadAllProducts();
+    });
+
+    $('#sortSelect').change(function () {
+        loadAllProducts();
+    });
+
+    // Update price label on slider change
+    $('#v0PriceSlider').on('input', function () {
+        $('#v0CurrentPrice').text('$' + $(this).val());
+    });
+});
+
+
+
+function toggleWishlist(event, productId) {
+    const btn = event.currentTarget || event.target;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    
+    const formData = new FormData();
+    formData.append('product_id', productId);
+
+    fetch('/wishlist/toggle/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            btn.classList.toggle('active');
+            // Optional: Show a success message
+            // console.log(data.message);
+            Toastify({
+                text: data.message, // Display the message from the response
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the right
+                style: {
+                    background: "linear-gradient(to right, #28a745, #5cd85d)", // Success style
+                    color: "#fff", // White text
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                },
+            }).showToast();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Optional: Show an error message to the user
+        Toastify({
+            text: "Please login and try again.",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "linear-gradient(to right, #dc3545, #ff6b6b)", // Error style
+                color: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)"
+            },
+        }).showToast();
+    });
+}
+
+
+</script>
+{% endblock %}

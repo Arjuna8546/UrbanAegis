@@ -1,0 +1,344 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_css %}
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 1rem;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        padding: 12px 15px;
+        font-weight: 600;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    /* Column-specific widths */
+    .table .col-id {
+        width: 8%;
+        white-space: nowrap;
+    }
+
+    .table .col-customer {
+        width: 15%;
+    }
+
+    .table .col-product {
+        width: 20%;
+    }
+
+    .table .col-reason {
+        width: 25%;
+        max-width: 300px; /* Prevent the column from getting too wide */
+    }
+
+    .table .col-status {
+        width: 12%;
+        white-space: nowrap;
+    }
+
+    .table .col-received {
+        width: 10%;
+        white-space: nowrap;
+    }
+
+    .table .col-actions {
+        width: 10%;
+        white-space: nowrap;
+    }
+
+    /* Cell content handling */
+    .table td.reason-cell {
+        white-space: normal;
+        word-wrap: break-word;
+        min-width: 200px;
+        max-width: 300px;
+        line-height: 1.5;
+    }
+
+    .table tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Existing switch styles */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+    }
+    .status-pending {
+        background-color: #ffd700;
+        color: #000;
+    }
+    .status-approved {
+        background-color: #28a745;
+        color: #fff;
+    }
+    .status-rejected {
+        background-color: #dc3545;
+        color: #fff;
+    }
+    .status-completed {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    /* New Custom Select Styling */
+    .custom-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 8px 35px 8px 12px;
+        border-radius: 6px;
+        border: 2px solid #e0e0e0;
+        font-size: 0.9em;
+        cursor: pointer;
+        background: white url("data:image/svg+xml,<svg height='10px' width='10px' viewBox='0 0 16 16' fill='%23000000' xmlns='http://www.w3.org/2000/svg'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>") no-repeat;
+        background-position: calc(100% - 12px) center;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+
+    .custom-select:focus {
+        outline: none;
+        border-color: #2196F3;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+
+    /* Status-specific select colors */
+    .select-pending {
+        border-color: #ffd700;
+        color: #000;
+    }
+    .select-pending:focus {
+        border-color: #ffd700;
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+
+    .select-approved {
+        border-color: #28a745;
+        color: #28a745;
+    }
+    .select-approved:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .select-rejected {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    .select-rejected:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+
+    .select-completed {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+    .select-completed:focus {
+        border-color: #6c757d;
+        box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+    </header>
+    <div class="breadcrumb">
+        Admin > Return Management
+    </div>
+    <div class="container">
+        <div class="header2">
+            <h1>Return Management</h1>
+        </div>
+
+
+        <!-- Returns List Section -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-undo"></i>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Return Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th>Return Received</th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for return in returns %}
+                            <tr>
+                                <td>{{ return.order.order_id }}</td>
+                                <td>{{ return.user.first_name }} {{ return.user.last_name }}</td>
+                                <td>{{ return.orderItem.product_variant.product.title }}</td>
+                                <td>{{ return.orderItem.quantity }}</td>
+                                <td>{{ return.orderItem.total_price }}</td>
+                                <td>{{ return.reason }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ return.status|lower }}">
+                                        {{ return.status }}
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    <select class="custom-select select-{{ return.status }}" 
+                                            onchange="updateReturnStatus('{{ return.id }}', this.value)">
+                                        <option value="pending" {% if return.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="approved" {% if return.status == 'approved' %}selected{% endif %}>Approved</option>
+                                        <option value="rejected" {% if return.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                        <option value="completed" {% if return.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" 
+                                               {% if return.return_received %}checked{% endif %}
+                                               onchange="updateReturnReceived('{{ return.id }}', this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No return requests found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Automatically hide messages after 2 seconds
+    setTimeout(() => {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 2000);
+
+    function updateReturnStatus(returnId, status) {
+        fetch(`/order/update-return-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ returnId: returnId, status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    function updateReturnReceived(returnId, received) {
+        fetch(`/order/update-return-received/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ received: received,returnId: returnId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

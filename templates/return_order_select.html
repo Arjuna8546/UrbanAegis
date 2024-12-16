@@ -1,0 +1,260 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+{% block breadcrum %}
+<div class="breadcrumb-path">Urban Angle > My Account > Return Order</div>
+{% endblock breadcrum %}
+
+{% block body %}
+<div class="return-order-container">
+    <div class="return-order-card">
+        <div class="order-header">
+            <h2>Return Order #{{ order.order_id }}</h2>
+            <p class="order-date">Ordered on: {{ order.created_at|date:"d M Y" }}</p>
+        </div>
+
+        <form method="POST" action="{% url 'addretrunorder' %}" class="return-form">
+            {% csrf_token %}
+            <input type="hidden" name="order_uuid" value="{{ order.uuid }}">
+            <div class="items-section">
+                <h3>Select Items to Return</h3>
+                <div class="items-list">
+                    {% for item in order.order_items.all %}
+                    <div class="item-card">
+                        <div class="item-checkbox">
+                            <input type="checkbox" 
+                                   name="return_items" 
+                                   value="{{ item.id }}" 
+                                   id="item_{{ item.id }}"
+                                   class="return-checkbox">
+                        </div>
+                        <div class="item-image">
+                            {% if item.product_variant.product.product_images.exists %}
+                            <img src="{{ item.product_variant.product.product_images.first.image_url }}" 
+                                 alt="{{ item.product_variant.product.title }}">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="Product Image">
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h4>{{ item.product_variant.product.title }}</h4>
+                            <p class="variant-info">
+                                Size: {{ item.product_variant.size }} | 
+                                Color: {{ item.product_variant.color }}
+                            </p>
+                            <p class="price-qty">
+                                Price: ₹{{ item.total_price }} | Quantity: {{ item.quantity }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="reason-section">
+                <h3>Return Reason</h3>
+                <textarea name="reason" 
+                          id="returnReason" 
+                          placeholder="Please explain why you want to return these items..."
+                          required></textarea>
+            </div>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="button-group">
+                <a href="{% url 'userorderdetail' %}" class="cancel-btn">Cancel</a>
+                <button type="submit" class="submit-btn">Submit Return Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.return-order-container {
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.return-order-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.order-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.order-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.order-date {
+    color: #666;
+    margin-top: 5px;
+    font-size: 0.9rem;
+}
+
+.items-section {
+    margin-bottom: 25px;
+}
+
+.items-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.items-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+}
+
+.item-card:hover {
+    background-color: #f9f9f9;
+}
+
+.item-checkbox {
+    margin-right: 15px;
+}
+
+.return-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.item-image {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.variant-info, .price-qty {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 3px 0;
+}
+
+.reason-section {
+    margin-bottom: 20px;
+}
+
+.reason-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #666;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.cancel-btn, .submit-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.submit-btn {
+    background-color: #000;
+    color: white;
+    border: none;
+}
+
+.cancel-btn:hover {
+    background-color: #eee;
+}
+
+.submit-btn:hover {
+    background-color: #333;
+}
+
+.messages {
+    margin-bottom: 15px;
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.message.error {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.message.success {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+</style>
+{% endblock body %}

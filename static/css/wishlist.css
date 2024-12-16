@@ -1,0 +1,352 @@
+
+
+
+
+
+.messages {
+    list-style: none;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.messages li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.messages .success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.messages .error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+/* Wishlist specific styles */
+
+
+.empty-wishlist {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+/* Wishlist button styles */
+.wishlist-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-btn svg {
+    stroke: #333;
+    fill: none;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn.active svg {
+    fill: #ff4444;
+    stroke: #ff4444;
+}
+
+.wishlist-btn:focus {
+    outline: none;
+}
+
+.rps-image {
+    position: relative;
+}
+
+.rps-image .wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+.rps-image .wishlist-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.rps-image .wishlist-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+
+/* Number input styles */
+input[type="number"] {
+    width: 3rem;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem;
+}
+/* Success Message Animation */
+.success-message {
+    background-color: #10B981;
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* Modal Styles */
+#cartModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+#cartModal.active {
+    display: flex;
+}
+
+.cart-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal-container {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    width: 24rem;
+    max-width: 100%;
+    transform: scale(1);
+    transition: transform 0.3s ease-in-out;
+    border: 2px solid #000000;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid #000000;
+    background-color: #f8f8f8;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.close-button {
+    color: #000000;
+    transition: color 0.15s;
+    padding: 0.5rem;
+}
+
+.close-button:hover {
+    color: #666666;
+}
+
+.modal-form {
+    padding: 1.5rem;
+    background-color: #ffffff;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #000000;
+    border-radius: 0.25rem;
+    background-color: #ffffff;
+    color: #000000;
+    transition: all 0.15s;
+    font-weight: 500;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #666666;
+    box-shadow: 0 0 0 2px rgba(102, 102, 102, 0.2);
+}
+
+.form-select:hover {
+    background-color: #f8f8f8;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    border: black solid 2px;
+}
+
+.quantity-button {
+    padding: 0.5rem 1rem;
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 600;
+    transition: all 0.15s;
+    min-width: 3rem;
+    cursor: pointer;
+}
+
+.quantity-input {
+    width: 5rem;
+    text-align: center;
+    border: none;
+    color: #000000;
+    font-weight: 600;
+    background-color: #ffffff;
+    padding: 0.5rem;
+}
+
+.quantity-input:focus {
+    outline: none;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f8f8;
+    border-top: 2px solid #000000;
+}
+
+.cancel-button {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #000000;
+    border-radius: 0.25rem;
+    color: #000000;
+    font-weight: 600;
+    transition: all 0.15s;
+    background-color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cancel-button:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.submit-button {
+    padding: 0.75rem 1.5rem;
+    background-color: #666666;
+    color: #ffffff;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.submit-button:hover {
+    background-color: #4a4a4a;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide number input arrows */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.success-message {
+    background-color: #666666;
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}

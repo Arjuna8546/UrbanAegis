@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}product{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+{% block content %}
+
+    
+
+    <div class="container">
+        <div class="product-grid">
+            <div class="product-gallery">
+                <div class="main-image">
+                    {% if images %}
+                        <img src="{{ images.0.image_url }}" alt="{{ product.title }}" id="mainImage">
+                        {% csrf_token %}
+                        <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                    {% else %}
+                        <img src="/static/images/placeholder.png" alt="No Image Available" id="mainImage">
+                    {% endif %}
+                </div>
+                
+                <div class="thumbnail-grid">
+                    {% if images %}
+                        {% for image in images %}
+                        <div class="thumbnail" onclick="changeImage('{{ image.image_url }}')">
+                            <img src="{{ image.image_url }}" alt="{{ product.title }} - View {{ forloop.counter }}">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No images available for this product.</p>
+                    {% endif %}
+                </div>
+              </div>
+              
+              <div class="preview-overlay">
+                <img class="preview-image" src="" alt="Zoomed Preview">
+                <span class="preview-close" onclick="closePreview()">&times;</span>
+              </div>
+              
+            
+
+            <div class="product-details">
+                <h1>{{ product.title|upper }}</h1>
+                <div class="rating">
+                    <div class="stars">★★★★★</div>
+                    <span class="review-count">(12 reviews)</span>
+                </div>
+                <div class="price">₹{{ variants.0.price }}</div>
+                
+                <form class="product-options" method="post" action="{% url 'addcart' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                
+                    <!-- Color Selector -->
+                    <div>
+                        <label for="color">COLOR</label>
+                        <select id="color" name="color" required>
+                            <option value="">Select color</option>
+                            {% for variant in variants %}
+                                <option value="{{ variant.color }}" data-sizes="{{ variant.size }}">{{ variant.color }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                
+                    <!-- Size Selector -->
+                    <div>
+                        <label for="size">SIZE</label>
+                        <select id="size" name="size" required>
+                            <option value="">Select size</option>
+                            {% for variant in variants %}
+                                <option value="{{ variant.size }}" data-colors="{{ variant.color }}">{{ variant.size }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                
+                    <!-- Quantity -->
+                    <div>
+                        <label for="quantity">QUANTITY</label>
+                        <select id="quantity" name="quantity">
+                            {% for i in "12345" %}
+                            <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="quantityInfo"></div>
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <button type="submit" class="add-to-cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        ADD TO CART
+                    </button>
+                </form>
+
+                <div class="product-info">
+                    <div class="info-section">
+                        <h3>Description</h3>
+                        <p>{{ product.description }}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Available Variants</h3>
+                        {% if variants %}
+                            <ul>
+                                {% for variant in variants %}
+                                <li class="variant-details">
+                                    <p><strong>SKU:</strong> {{ variant.sku }}</p>
+                                    <p><strong>Price:</strong> ₹{{ variant.price }}</p>
+                                    <p><strong>Color:</strong> {{ variant.color }}</p>
+                                    <p><strong>Size:</strong> {{ variant.get_size_display }}</p>
+                                    <p>
+                                        <strong>In Stock:</strong> 
+                                        <span class="stock-status {% if variant.stock_status %}in-stock{% else %}out-of-stock{% endif %}">
+                                            {% if variant.stock_status %}Yes{% else %}No{% endif %}
+                                        </span>
+                                    </p>
+                                    <p><strong>Available Quantity:</strong> {{ variant.available_quantity }}</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No variants available for this product.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>SHIPPING</h3>
+                        <ul>
+                            <li>Free Shipping on orders over ₹1000</li>
+                            <li>30-Day Returns for unworn items</li>
+                            <li>Secure Checkout with SSL encryption</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="reviews-container">
+        <div class="reviews-header">
+            <div class="overall-rating">
+                <div class="rating-large">
+                    <span class="star">★★★★★</span>
+                    4.91 out of 5
+                </div>
+                <div class="rating-subtitle">Based on 152 reviews</div>
+            </div>
+            <div class="rating-bars">
+                <div class="rating-bar-row">
+                    <div class="stars">★★★★★</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 95%;"></div>
+                    </div>
+                    <div class="rating-count">143</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★★★☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 5%;"></div>
+                    </div>
+                    <div class="rating-count">9</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★★☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★★☆☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+                <div class="rating-bar-row">
+                    <div class="stars">★☆☆☆☆</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="rating-count">0</div>
+                </div>
+            </div>
+            <button class="write-review">Write a review</button>
+        </div>
+
+
+        <div class="reviews-list">
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar"></div>
+                        <div>
+                            <div>AM</div>
+                            <span class="star">★★★★★</span>
+                        </div>
+                    </div>
+                    <div class="review-date">12/19/2023</div>
+                </div>
+                <div class="review-content">
+                    absolutely freakin beautiful! matches with my tattoo aswell! 🧡
+                </div>
+            </div>
+
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar"></div>
+                        <div>
+                            <div>Kristalynne! <span class="verified-badge">Verified</span></div>
+                            <span class="star">★★★★★</span>
+                        </div>
+                    </div>
+                    <div class="review-date">12/18/2023</div>
+                </div>
+                <div class="review-content">
+                    always wanted the berserk pendant, ngl its made perfect 🧡
+                </div>
+                <img src="/placeholder.svg?height=100&width=100" alt="Review image" class="review-image">
+            </div>
+        </div>
+    </div>
+
+        <br>
+        <br>
+
+        <div class="rps-slider">
+            <button class="rps-nav rps-prev" aria-label="Previous product">&lt;</button>
+            <div class="rps-track">
+                {% for related_product in related_products %}
+                <div class="rps-card">
+                    <div class="rps-image">
+                        {% with related_product.variants.first as variant %}
+                            {% if variant and related_product.product_images.first %}
+                                <img src="{{ related_product.product_images.first.image_url }}" alt="{{ related_product.title }}" class="rps-img rps-img-main">
+                            {% else %}
+                                <img src="{% static 'images/default-image.jpg' %}" alt="No Image Available" class="rps-img rps-img-main">
+                            {% endif %}
+                        {% endwith %}
+                        <button class="wishlist-btn {% if related_product.id in user_wishlist %}active{% endif %}" onclick="toggleWishlist({{ related_product.id }})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <a href="{% url 'product_detail' related_product.id %}" class="rp-button">
+                        <div class="rps-info">
+                                <h3>{{ product.title }}</h3>
+                            <p class="rps-material">
+                                {% with related_product.variants.first as variant %}
+                                    {% if variant and variant.color %}
+                                        {{ variant.color }}
+                                    {% else %}
+                                        S. Steel
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                            <div class="rps-price">
+                                <span class="rps-current">From ₹{{ related_product.min_price }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="rps-nav rps-next" aria-label="Next product">&gt;</button>
+        </div>
+        
+        
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const thumbnails = document.querySelectorAll('.thumbnail img');
+    const mainImage = document.querySelector('.main-image img');
+    const previewOverlay = document.querySelector('.preview-overlay');
+    const previewImage = document.querySelector('.preview-image');
+    const previewClose = document.querySelector('.preview-close');
+    let isZoomed = false;
+    let startX, startY, translateX = 0, translateY = 0;
+    
+    // Function to change the main image
+    function changeImage(src) {
+        mainImage.src = src;
+        resetZoom();
+    }
+    
+    // Handle thumbnail clicks to change the main image
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            mainImage.src = thumb.src;
+            resetZoom();
+        });
+    });
+    
+    // Toggle fullscreen preview on main image click
+    mainImage.addEventListener('click', () => {
+        previewImage.src = mainImage.src;
+        previewOverlay.classList.add('active');
+        resetZoom();
+    });
+    
+    // Close preview overlay
+    previewOverlay.addEventListener('click', (e) => {
+        if (e.target === previewOverlay || e.target === previewClose) {
+            closePreview();
+        }
+    });
+    
+    // Zoom on preview image when clicked
+    previewImage.addEventListener('click', toggleZoom);
+    
+    function toggleZoom(e) {
+        if (!isZoomed) {
+            isZoomed = true;
+            previewImage.style.transform = 'scale(2)';
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            previewImage.style.cursor = 'grab';
+        } else {
+            resetZoom();
+        }
+    }
+    
+    function startDrag(e) {
+        if (!isZoomed) return;
+        e.preventDefault();
+        startX = (e.clientX || e.touches[0].clientX) - translateX;
+        startY = (e.clientY || e.touches[0].clientY) - translateY;
+        previewImage.style.cursor = 'grabbing';
+    }
+    
+    function drag(e) {
+        if (!isZoomed) return;
+        e.preventDefault();
+        const x = (e.clientX || e.touches[0].clientX) - startX;
+        const y = (e.clientY || e.touches[0].clientY) - startY;
+        translateX = Math.max(Math.min(x, previewImage.width / 2), -previewImage.width / 2);
+        translateY = Math.max(Math.min(y, previewImage.height / 2), -previewImage.height / 2);
+        previewImage.style.transform = `scale(2) translate(${translateX}px, ${translateY}px)`;
+    }
+    
+    function endDrag() {
+        if (isZoomed) previewImage.style.cursor = 'grab';
+    }
+    
+    function resetZoom() {
+        isZoomed = false;
+        translateX = 0;
+        translateY = 0;
+        previewImage.style.transform = 'scale(1) translate(0, 0)';
+        previewImage.style.cursor = 'zoom-in';
+    }
+    
+    function closePreview() {
+        previewOverlay.classList.remove('active');
+        resetZoom();
+    }
+    
+    // Event listeners for dragging
+    previewImage.addEventListener('mousedown', startDrag);
+    previewImage.addEventListener('mousemove', drag);
+    previewImage.addEventListener('mouseup', endDrag);
+    previewImage.addEventListener('mouseleave', endDrag);
+    
+    // Touch events for mobile devices
+    previewImage.addEventListener('touchstart', startDrag);
+    previewImage.addEventListener('touchmove', drag);
+    previewImage.addEventListener('touchend', endDrag);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const colorSelect = document.getElementById('color');
+        const sizeSelect = document.getElementById('size');
+        const quantitySelect = document.getElementById('quantity');
+        const quantityInfo = document.getElementById('quantityInfo');
+        const priceDiv = document.querySelector('.price');
+    
+        // Remove duplicate options in the dropdowns
+        function removeDuplicateOptions(selectElement) {
+            const seenValues = new Set();
+            const options = Array.from(selectElement.options);
+            options.forEach(option => {
+                if (option.value && seenValues.has(option.value)) {
+                    option.remove(); // Remove duplicate option
+                } else {
+                    seenValues.add(option.value);
+                }
+            });
+        }
+    
+        // Update size options based on selected color
+        function updateSizes(selectedColor) {
+            const sizeOptions = Array.from(sizeSelect.options);
+            sizeOptions.forEach(option => {
+                if (option.value === "") return; // Keep the placeholder option
+                const allowedColors = option.getAttribute('data-colors');
+                if (!selectedColor || allowedColors.split(',').includes(selectedColor)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+            sizeSelect.value = ""; // Reset size selection
+        }
+    
+        // Update color options based on selected size
+        function updateQuantity() {
+            const selectedColor = colorSelect.value;
+            const selectedSize = sizeSelect.value;
+
+            if (selectedColor && selectedSize) {
+                fetchQuantity(selectedColor, selectedSize);
+            } else {
+                quantityInfo.textContent = '';
+            }
+        }
+
+        function fetchQuantity(color, size) {
+            quantityInfo.textContent = 'Loading...';
+
+            const productId = {{product.id}}; // Example: Replace this with dynamic data as needed.
+
+            // Update API URL to include product_id
+            const apiUrl = `/quantity?product_id=${encodeURIComponent(productId)}&color=${encodeURIComponent(color)}&size=${encodeURIComponent(size)}`;
+        
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.quantity > 0) {
+                        quantityInfo.innerHTML = `Available: ${data.quantity}`;
+                        
+                        // Update price display based on discount
+                        if (data.has_discount) {
+                            priceDiv.innerHTML = `
+                                <span style="text-decoration: line-through; color: #999;">₹${data.original_price}</span>
+                                <span style="color: #e41749; margin-left: 10px;">₹${data.discounted_price}</span>
+                                <br>
+                                <span style="background: #e41749; color: white; padding: 1px 8px; border-radius: 4px;  font-size:14px;">
+                                    Save ₹${data.discount_amount}
+                                </span>`;
+                        } else {
+                            priceDiv.innerHTML = `₹${data.original_price}`;
+                        }
+                    } else {
+                        quantityInfo.textContent = 'Out of Stock';
+                         priceDiv.textContent = `₹${data.original_price}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    quantityInfo.textContent = 'Error fetching details';
+                    priceDiv.textContent = 'Error fetching price';
+                });
+        }
+
+        //colorSelect.addEventListener('change', updateQuantity);
+        sizeSelect.addEventListener('change', updateQuantity);
+
+        // Initial update
+        updateQuantity();
+    
+        // Apply the deduplication on DOM load
+        removeDuplicateOptions(colorSelect);
+        removeDuplicateOptions(sizeSelect);
+    
+        // Event listeners for dropdown changes
+        colorSelect.addEventListener('change', function () {
+            updateSizes(this.value);
+        });
+
+    });
+
+    function toggleWishlist(productId) {
+        const btn = event.currentTarget;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const formData = new FormData();
+        formData.append('product_id', productId);
+    
+        fetch('/wishlist/toggle/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+        if (data.status === 'success') {
+            btn.classList.toggle('active');
+            // Optional: Show a success message
+            // console.log(data.message);
+            Toastify({
+                text: data.message, // Display the message from the response
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the right
+                style: {
+                    background: "linear-gradient(to right, #28a745, #5cd85d)", // Success style
+                    color: "#fff", // White text
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                },
+            }).showToast();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Optional: Show an error message to the user
+        Toastify({
+            text: "Please login and try again.",
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "linear-gradient(to right, #dc3545, #ff6b6b)", // Error style
+                color: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)"
+            },
+        }).showToast();
+    });
+    }
+    
+    
+    
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_list.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container">
+
+    <div class="header1">
+        <button id="filterBtn" class="filter-btn">Filters</button>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search products" class="search-input">
+            <button id="filterBtn2" class="filter-btn">Search</button>
+        </div>
+        
+    </div>
+    <div id="filterOptions" class="filter-options" style="display: none;">
+            <!-- Category Section -->
+            <div class="filter-section">
+                <h4>Categories</h4>
+                {% for category in active_categories %}
+                    <label><input type="checkbox" value="{{ category.name }}"> {{ category.name }}</label>
+                {% endfor %}
+            </div>
+        
+            <!-- Color Section -->
+            <div class="filter-section">
+                <h4>Color</h4>
+                <div class="color-options">
+                    <span class="color-circle" style="background-color: #ccc;" data-color="silver"></span>
+                    <span class="color-circle" style="background-color: #f0a500;" data-color="gold"></span>
+                    <span class="color-circle" style="background-color: #fff;" data-color="pearl"></span>
+                </div>
+            </div>
+        
+            <!-- Size Section -->
+            <div class="filter-section">
+                <h4>Size</h4>
+                <div class="size-options">
+                    <button class="size-btn" data-size="S">S</button>
+                    <button class="size-btn" data-size="M">M</button>
+                    <button class="size-btn" data-size="L">L</button>
+                    <button class="size-btn" data-size="XL">XL</button>
+                    <button class="size-btn" data-size="XXL">XXL</button>
+                </div>
+            </div>
+        
+            <!-- Price Section -->
+            <div class="filter-section">
+                <h4>Price</h4>
+                <input type="range" min="0" max="1000" value="500" class="price-slider" id="priceSlider">
+                <div class="price-display" id="priceDisplay">₹500.00</div>
+            </div>
+            <button type="submit" class="filter-btn1 filter-btn" style="margin: auto; padding-left: 2rem; padding-right: 2rem;">Filter</button>
+    </div>
+    <div class="container2">
+    <div class="product-grid" id="productGrid"></div>
+    <div class="container2">
+</div>
+
+
+
+
+<script>
+    // Add this before your other JavaScript code
+    const CSRF_TOKEN = '{{ csrf_token }}';
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'script/product_list.js' %}"></script>
+{% endblock %}

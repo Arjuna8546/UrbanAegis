@@ -1,0 +1,98 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Website{% endblock %}</title>
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <!-- Block for child templates to add custom CSS -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">URBAN AEGIS</a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">HOME</a>
+                <a href="{% url 'allproductshow' %}">BEST SELLERS</a>
+                <a href="{% url 'allproductshow' %}">SHOP</a>
+                <a href="{% url 'contact' %}">CONTACT</a>
+            </nav>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'account' %}" class="a">ACCOUNT</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="a">LOGIN</a>
+                {% endif %}
+                
+                <a href="{% url 'addcart' %}" class='a'>CART</a>
+            </div>
+        </div>
+        <br>
+    </header>
+    <main>
+        
+        {% block content %}{% endblock %}
+
+        
+    </main>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>HELP</h3>
+                <div class="footer-links">
+                    <a href="/shipping">Shipping</a>
+                    <a href="/contact">Contact Us</a>
+                    <a href="/returns">Return & Exchange Policy</a>
+                    <a href="/warranty">Warranty</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>MENU</h3>
+                <div class="footer-links">
+                    <a href="/about">About me</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of service</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <div class="footer-logo">URBAN AEGIS</div>
+                <p>© 2024 - URBAN AEGIS</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    {% block scripts %}{% endblock %}
+    {% comment %} razorpaycheckout {% endcomment %}
+    {% comment %} <script src="{% static 'script/checkout.js' %}"></script> {% endcomment %}
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}", // Display the actual message
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the center
+                style: {
+                    background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                    color: "#fff", // Default white text for all messages
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                }
+            }).showToast();
+        {% endfor %}
+    </script>
+{% endif %}
+
+
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: .5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #1a1a1a;
+        }
+        .report-title {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .report-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        .report-info p {
+            margin: 5px 0;
+            color: #495057;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        table, th, td {
+            border: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px;
+            background-color: #fff;
+        }
+        tr:nth-child(even) td {
+            background-color: #f8f9fa;
+        }
+        .summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-top: 30px;
+        }
+        .summary-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #343a40;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .summary-item {
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .summary-item strong {
+            color: #495057;
+        }
+        .status-delivered {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 5px;
+        }
+        
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .pagination a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .pagination .current {
+            background-color: black;
+            color: white;
+            border-color: black;
+        }
+        
+        .pagination .disabled {
+            color: #999;
+            pointer-events: none;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">URBAN AEGIS</div>
+        <div class="report-title">Sales Report</div>
+    </div>
+
+    <div class="report-info">
+        <p><strong>Filter Type:</strong> {{ filter_type|title }}</p>
+        {% if start_date or end_date %}
+        <p><strong>Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
+        {% endif %}
+        <p><strong>Generated On:</strong> {% now "F j, Y H:i" %}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Subtotal</th>
+                <th>Discount</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.order_id }}</td>
+                <td>{{ order.customer_name }}</td>
+                <td>₹{{ order.subtotal }}</td>
+                <td>₹{{ order.discount }}</td>
+                <td>₹{{ order.total_amount }}</td>
+                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                <td class="status-{{ order.status_of_order|lower }}">{{ order.status_of_order }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-title">Financial Summary</div>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <strong>Total Orders:</strong> {{ total_orders }}
+            </div>
+            <div class="summary-item">
+                <strong>Total Sales:</strong> ₹{{ total_sales }}
+            </div>
+            <div class="summary-item">
+                <strong>Total Discounts:</strong> ₹{{ total_discount }}
+            </div>
+            <div class="summary-item">
+                <strong>Net Revenue:</strong> ₹{{ net_revenue }}
+            </div>
+        </div>
+    </div>
+    {% if is_paginated %}
+<div class="pagination">
+    {% if has_previous %}
+        <a href="?page=1&filter_type={{ filter_type }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo; First</a>
+        <a href="?page={{ previous_page_number }}&filter_type={{ filter_type }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&lsaquo; Previous</a>
+    {% endif %}
+    
+    {% for page_number in page_range %}
+        {% if page_number == page_obj.number %}
+            <span class="current">{{ page_number }}</span>
+        {% elif page_number == '...' %}
+            <span class="disabled">...</span>
+        {% else %}
+            <a href="?page={{ page_number }}&filter_type={{ filter_type }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ page_number }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if has_next %}
+        <a href="?page={{ next_page_number }}&filter_type={{ filter_type }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Next &rsaquo;</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&filter_type={{ filter_type }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+    <div class="footer">
+        <p>This is an automatically generated report from Urban Aegis Sales Management System</p>
+        <p>© {% now "Y" %} Urban Aegis. All rights reserved.</p>
+    </div>
+</body>
+</html>

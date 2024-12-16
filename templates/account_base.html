@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/account.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/changepassword.css' %}">
+<link rel="stylesheet" href="{% static 'css/address.css' %}">
+<link rel="stylesheet" href="{% static 'css/userorder.css' %}">
+<link rel="stylesheet" href="{% static 'css/wishlist.css' %}">
+<link rel="stylesheet" href="{% static 'css/wallet.css' %}">
+<link rel="stylesheet" href="{% static 'css/returnorder.css' %}">
+
+{% endblock %}
+<body>
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <h1>My Account</h1>
+            
+            {% block breadcrum %}{% endblock breadcrum %}
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="account-layout">
+            <div class="sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="{% url 'userorderdetail' %}"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                    <li><a href="{% url 'retrunorderview' %}"><i class="fas fa-undo"></i> Return Orders</a></li>
+                    <li><a href="{% url 'wishlistview' %}"><i class="far fa-heart"></i> Wishlist</a></li>
+                    <li><a href="{% url 'addressdetail' %}"><i class="fas fa-map-marker-alt"></i> Address</a></li>
+                    <li><a href="{% url 'changepassword' %}"><i class="fas fa-lock"></i> Password</a></li>
+                    <li><a href="{% url 'account' %}"><i class="far fa-user"></i> Account Detail</a></li>
+                    <li><a href="{% url 'wallet' %}"><i class="fas fa-wallet"></i> Wallet</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+
+            {% block body %}{% endblock body %}
+        </div>
+    </div>
+</body>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}

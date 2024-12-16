@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}    <link rel="stylesheet" href="{% static 'css/checkout.css' %}">{% endblock %}
+{% block content %}
+<body>
+
+    <h1 class="checkout">Checkout</h1>
+    <br>
+    <div class="container">
+        <form method="post" action="{% url 'addorder' %}">
+            {% csrf_token %}
+        <div class="grid">
+            <div class="left-column space-y-4">
+                <div class="card">
+                    <div class="card-header flex justify-between items-center">
+                        <h2 class="card-title">Order Summary</h2>
+                        <button type="button"  class="button button-outline button-sm " style="color: rgb(255, 255, 255); background-color: black;" onclick="window.location.href='{% url 'addcart' %}'">Edit</button>
+                    </div>
+                    <div class="card-content">
+                        <button id="toggleOrderSummary" class="dropdown-button flex items-center justify-between w-full">
+                            <div class="flex items-center gap-2">
+                                <span class="sr-only">Toggle order summary</span>
+                                <span class="font-medium">Order Summary</span>
+                            </div>
+                            
+                        </button>
+                        
+                        <div id="orderSummaryContent" class="dropdown-content active mt-4 space-y-4">
+                            {% for cartitem in cartitems %}
+                            <div class="flex gap-4">
+                                <img src="{{ cartitem.product.product_images.first.image_url }}" alt="Eternal Cycle Pendant" width="80" height="80" class="rounded-md object-cover">
+                                <div>
+                                    <h3 class="font-medium">{{ cartitem.product.title }} - {{ cartitem.product_variant.color }}</h3>
+                                    {% if cartitem.product_variant.price_discount %}
+                                    <p class="text-sm text-muted">Price : ₹{{ cartitem.product_variant.price_discount }}</p>
+                                    {% else %}
+                                    <p class="text-sm text-muted">Price : ₹{{ cartitem.product_variant.price }}</p>
+                                    {% endif %}
+                                    
+                                    <p class="text-sm text-muted">Quantity : {{ cartitem.quantity }}</p>
+                                </div>
+                                
+                            </div>
+                            {% endfor %}
+                            <div class="separator"></div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal" data-subtotal>{{subtotal}}</span>
+                                    <input type="hidden" name="subtotal" id="subtotal-input" value="">
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Shipping</span>
+                                        <span style="color: #22c55e;">Free</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Tax</span>
+                                    <span>{{tax}}</span>
+                                </div>
+                                <div class="flex justify-between discount-row" >
+                                    <span>Discount</span>
+                                    <span id="discount" data-discount>-₹0</span>
+                                    <input type="hidden" name="discount" id="discount-input" value="">
+                                </div>
+                                <div class="separator"></div>
+                                <div class="flex justify-between font-medium">
+                                    <span>To Pay</span>
+                                    <span id="total" data-total>₹{{total}}</span>
+                                    <input type="hidden" name="total" id="total-input" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Apply Coupon</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="couponCode" name="couponCode" placeholder="Enter coupon code" class="input flex-grow">
+                            <button type="button" id="applyCoupon" class="button button-primary">Apply</button>
+                            <button type="button" id="removeCoupon" class="text-red-600 hover:text-red-800" style="display: none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="couponMessage" class="mt-2" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Delivery Information</h2>
+                    </div>
+                    <div class="card-content space-y-4">
+                        
+                        <div class="delivery-card">
+                            <div class="delivery-content">
+                                <div class="delivery-header">
+                                    <h2 class="delivery-title">Deliver To</h2>
+                                    <button type="button"  class="delivery-edit-btn" onclick="window.location.href='{% url 'addressdetail' %}'" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                        Click to Edit
+                                    </button>
+                                </div>
+                    
+                                <div class="delivery-user">
+                                    <h3 class="delivery-name">{{user.first_name}} {{user.last_name}}</h3>
+                                    <p class="delivery-email">{{user.email}}</p>
+                                </div>
+                    
+                                <div class="delivery-addresses">
+                                    <div class="address-card">
+                                        {% for address in addresses %}
+                                        <input 
+                                            type="radio" 
+                                            name="address" 
+                                            id="address{{ address.id }}" 
+                                            class="address-radio" 
+                                            value="{{ address.id }}" 
+                                            {% if address.is_default %}checked{% endif %}>
+                                        <label for="address{{ address.id }}" class="address-label">
+                                            <div class="address-content">
+                                                {% if address.is_default %}
+                                                <span class="badge">Default Address</span>
+                                                {% endif %}
+                                                <p>{{ address.street_address }}, {{ address.city }}</p>
+                                                <p>{{ address.state }}, {{ address.country }}, {{ address.pin_code }}</p>
+                                            </div>
+                                            <div class="address-select-indicator">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            </div>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="card">
+                    <h2 class="card-title">Payment Options</h2>
+                    <input type="hidden" name="order_id" id="order_id" value="">
+                    <input type="hidden" name="amount" id="amount" value="{{total}}">
+                    
+                    <div class="payment-option" style="margin-bottom: 1rem;">
+                        <input type="radio" id="razorpay" name="payment_method" value="RazorPay" class="payment-radio" style="display: none;">
+                        <label for="razorpay" class="payment-button button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white; cursor: pointer; display: flex;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-credit-card"></i>
+                                <span>RazorPay</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="payment-option" style="margin-bottom: 1rem;">
+                        <input type="radio" id="cod" name="payment_method" value="cod" class="payment-radio" style="display: none;">
+                        <label for="cod" class="payment-button button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white; cursor: pointer; display: flex;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Cash on Delivery</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </label>
+                    </div>
+                    {% if wallet.is_active %}
+                    <div class="payment-option" style="margin-bottom: 1rem;">
+                        <input type="radio" id="wallet" name="payment_method" value="wallet" class="payment-radio" style="display: none;">
+                        <label for="wallet" class="payment-button button button-outline w-full justify-between" style="height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; font-weight: normal; background-color: black; color: white; cursor: pointer; display: flex;">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-wallet"></i>
+                                <div>
+                                    <span class="block">Wallet</span>
+                                    <span class="block text-xs text-gray-400 mt-1">Balance: ₹{{ wallet.balance|default:"0.00" }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                               
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" id="pay-now-btn" class="button w-full" style="background-color: #4CAF50; color: white; padding: 1rem; border: none; cursor: pointer;">
+                        Pay Now
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </form>
+    </div>
+     <!-- Wallet Password Modal -->
+     <div id="walletPasswordModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div class="modal-content" style="position: relative; background-color: white; margin: 15% auto; padding: 20px; border-radius: 5px; width: 90%; max-width: 500px;">
+            <span class="close" onclick="closeWalletModal()" style="position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <h2 style="margin-bottom: 20px; font-size: 1.5rem;">Enter Wallet Password</h2>
+            <div style="margin-bottom: 20px;">
+                <input type="password" id="walletPassword" placeholder="Enter your wallet password" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                <div id="walletPasswordError" style="color: #ef4444; font-size: 0.875rem; display: none;"></div>
+            </div>
+            <button onclick="verifyWalletPassword()" 
+                    style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+                Confirm Payment
+            </button>
+        </div>
+    </div>
+
+
+    
+</body>
+{% endblock content %}
+
+{% block scripts %}
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleOrderSummary');
+        const content = document.getElementById('orderSummaryContent');
+        let isExpanded = true;
+
+        toggleBtn.addEventListener('click', function() {
+            isExpanded = !isExpanded;
+            content.classList.toggle('active');
+            toggleBtn.classList.toggle('active');
+            toggleBtn.setAttribute('aria-expanded', isExpanded);
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const couponCode = document.getElementById('couponCode');
+        const applyCoupon = document.getElementById('applyCoupon');
+        const removeCoupon = document.getElementById('removeCoupon');
+        const messageDiv = document.getElementById('couponMessage');
+        const discountRow = document.querySelector('.discount-row');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+
+        applyCoupon.addEventListener('click', function() {
+        // Show loading state
+        this.disabled = true;
+        this.textContent = 'Applying...';
+        messageDiv.style.display = 'none';
+
+        fetch('/order/apply-coupon/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                coupon_code: couponCode.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Reset button state
+            this.disabled = false;
+            this.textContent = 'Apply';
+            messageDiv.style.display = 'block';
+
+            if (data.valid) {
+                // Update total amounts
+                // Update the text in the spans
+                document.querySelector('[data-subtotal]').textContent = '₹' + data.subtotal;
+                document.querySelector('[data-discount]').textContent = '-₹' + data.discount;
+                document.querySelector('[data-total]').textContent = '₹' + data.total;
+
+                // Also update the values of the hidden input fields
+                document.getElementById('subtotal-input').value = data.subtotal;
+                document.getElementById('discount-input').value = data.discount;
+                document.getElementById('total-input').value = data.total;
+
+                
+                // Show success message
+                messageDiv.className = 'mt-2 text-green-600';
+                messageDiv.textContent = data.message;
+
+                
+                // Show remove button and discount row
+                removeCoupon.style.display = 'block';
+                discountRow.style.display = 'flex';
+            } else {
+                // Show error message
+                messageDiv.className = 'mt-2 text-red-600';
+                messageDiv.textContent = data.message;
+
+                
+            }
+        })
+        .catch(error => {
+            // Reset button state and show error
+            this.disabled = false;
+            this.textContent = 'Apply';
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'mt-2 text-red-600';
+            messageDiv.textContent = 'An error occurred. Please try again.';
+
+        });
+    });
+
+    removeCoupon.addEventListener('click', function() {
+        fetch('/order/remove-coupon/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                // Reset UI
+                couponCode.value = '';
+                removeCoupon.style.display = 'none';
+                discountRow.style.display = 'none';
+                
+                // Update totals
+                document.querySelector('[data-subtotal]').textContent = '₹' + data.subtotal;
+                document.querySelector('[data-total]').textContent = '₹' + data.total;
+
+                // Also update the values of the hidden input fields
+                document.getElementById('subtotal-input').value = data.subtotal;
+                document.getElementById('discount-input').value = 0.00;
+                document.getElementById('total-input').value = data.total;
+                
+                // Show success message
+                messageDiv.textContent = data.message;
+                messageDiv.style.display = 'block';
+                messageDiv.className = 'mt-2 text-green-600';
+                
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            messageDiv.textContent = 'An error occurred while removing the coupon.';
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'mt-2 text-red-600';
+        });
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkoutForm = document.querySelector('form');
+        
+        checkoutForm.addEventListener('submit', function(e) {
+            const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+            
+            if (selectedPayment && selectedPayment.value === 'wallet') {
+                e.preventDefault();
+                document.getElementById('walletPasswordModal').style.display = 'block';
+            }
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const walletRadio = document.getElementById('wallet');
+        
+        form.addEventListener('submit', function(e) {
+            if (walletRadio.checked) {
+                e.preventDefault();
+                document.getElementById('walletPasswordModal').style.display = 'block';
+            }
+        });
+    });
+
+    function closeWalletModal() {
+        document.getElementById('walletPasswordModal').style.display = 'none';
+        document.getElementById('walletPassword').value = '';
+        document.getElementById('walletPasswordError').style.display = 'none';
+    }
+
+    function verifyWalletPassword() {
+        const password = document.getElementById('walletPassword').value;
+        const errorDiv = document.getElementById('walletPasswordError');
+        const form = document.querySelector('form');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('{% url "verify_order_password" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                
+                
+                // Submit the form
+                form.submit();
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        });
+    }
+    
+</script>
+{% endblock %}

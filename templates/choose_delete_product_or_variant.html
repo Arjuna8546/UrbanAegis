@@ -1,0 +1,104 @@
+<!-- choose_delete_product_or_variant.html -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Deletion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px; /* adjust as needed */
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .product-details {
+            background-color: #ecf0f1;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .product-details p {
+            margin: 5px 0;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .button-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .button-delete:hover {
+            background-color: #c0392b;
+        }
+        .button-cancel {
+            background-color: #7f8c8d;
+            color: white;
+        }
+        .button-cancel:hover {
+            background-color: #6c7a7d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Confirm Deletion</h2>
+        <p>Would you like to delete the following?</p>
+        <div class="product-details">
+            <p><strong>Product Name:</strong> {{ product.title }}</p>
+            <p><strong>Variant Details:</strong></p>
+            <p>Color: {{ variant.color }}, Size: {{ variant.size }}</p>
+            <p>Price: ₹{{ variant.price }}, Quantity: {{ variant.available_quantity }}</p>
+        </div>
+
+        <div class="button-group">
+            <form method="post" action="{% url 'confirm_delete_product_or_variant' variant.id 'product' %}">
+                {% csrf_token %}
+                <button type="submit" class="button button-delete">Delete Product (and all variants)</button>
+            </form>
+
+            <form method="post" action="{% url 'confirm_delete_product_or_variant' variant.id 'variant' %}">
+                {% csrf_token %}
+                <button type="submit" class="button button-delete">Delete Only This Variant</button>
+            </form>
+
+            <a href="{% url 'product' %}">
+                <button type="button" class="button button-cancel">Cancel</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .success-container {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+    .success-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 600px;
+        width: 100%;
+        margin: 2rem;
+    }
+    .success-header {
+        background: #000;
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+    .success-icon {
+        width: 60px;
+        height: 60px;
+        background: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+    .success-body {
+        padding: 2rem;
+    }
+    .order-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .tracking-timeline {
+        position: relative;
+        padding-left: 30px;
+        margin: 2rem 0;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #000;
+    }
+    .timeline-item::after {
+        content: '';
+        position: absolute;
+        left: -23px;
+        top: 15px;
+        width: 2px;
+        height: calc(100% - 15px);
+        background: #e2e8f0;
+    }
+    .timeline-item:last-child::after {
+        display: none;
+    }
+    .timeline-item.active::before {
+        background: #4CAF50;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .action-button {
+        flex: 1;
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 500;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .primary-button {
+        background: #000;
+        color: white;
+    }
+    .primary-button:hover {
+        background: #333;
+        transform: translateY(-2px);
+    }
+    .secondary-button {
+        background: #f8f9fa;
+        color: #000;
+        border: 1px solid #e2e8f0;
+    }
+    .secondary-button:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+</style>
+
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-header">
+            <div class="success-icon">
+                <i class="fas fa-check fa-2x text-white"></i>
+                <svg class="hidden" xmlns="http://www.w3.org/2000/svg" width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">Order Placed Successfully!</h1>
+            <p class="text-gray-200">Thank you for shopping with us</p>
+        </div>
+        
+        <div class="success-body">
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="text-gray-600">Order Number</span>
+                    <span class="font-semibold">
+                        {% if order.payment_method == "razorpay" %}
+                            {{ order.razorpay_order_id }}
+                        {% else %}
+                            {{ order.order_id }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-600">Order Date</span>
+                    <span class="font-semibold">{{ order.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-600">Total Amount</span>
+                    <span class="font-semibold">₹{{ order.total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-gray-600">Payment Method</span>
+                    <span class="font-semibold">{{ order.payment_method }}</span>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold mb-4">Order Status</h2>
+            <div class="tracking-timeline">
+                <div class="timeline-item active">
+                    <h3 class="font-semibold">Order Confirmed</h3>
+                    <p class="text-sm text-gray-600">Your order has been placed successfully</p>
+                </div>
+                <div class="timeline-item">
+                    <h3 class="font-semibold">Processing</h3>
+                    <p class="text-sm text-gray-600">We're preparing your order</p>
+                </div>
+                <div class="timeline-item">
+                    <h3 class="font-semibold">Shipping</h3>
+                    <p class="text-sm text-gray-600">Your order will be shipped soon</p>
+                </div>
+                <div class="timeline-item">
+                    <h3 class="font-semibold">Delivery</h3>
+                    <p class="text-sm text-gray-600">Expected delivery within 3-5 business days</p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'userorderdetail' %}" class="action-button secondary-button">
+                    <i class="fas fa-truck mr-2"></i>Track Order
+                </a>
+                <a href="{% url 'home' %}" class="action-button primary-button">
+                    <i class="fas fa-shopping-bag mr-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

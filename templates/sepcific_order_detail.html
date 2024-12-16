@@ -1,0 +1,164 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/specificorder.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+    </header>
+    <div class="breadcrumb">
+        Admin > Dashboard
+    </div>
+    
+    <div class="container">
+        <div class="header1">
+            <div>
+                <h1>Order Details</h1>
+                <p>Order UUID : {{ order.uuid }}</p>
+            </div>
+            <td>
+                <form action="{% url 'update_order_status' order.id %}" method="POST" class="status-form">
+                    {% csrf_token %}
+                    <select name="status_of_order" class="status-dropdown" onchange="this.form.submit()">
+                        <option value="Pending" {% if order.status_of_order == "Pending" %}selected{% endif %}>Pending</option>
+                        <option value="Processing" {% if order.status_of_order == "Processing" %}selected{% endif %}>Processing</option>
+                        <option value="Shipped" {% if order.status_of_order == "Shipped" %}selected{% endif %}>Shipped</option>
+                        <option value="Delivered" {% if order.status_of_order == "Delivered" %}selected{% endif %}>Delivered</option>
+                        <option value="Cancelled" {% if order.status_of_order == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </form>
+            </td>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Customer Information
+                </h2>
+                <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Phone:</strong> {{ user.phone_no }}</p>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Shipping Address
+                </h2>
+                <p> {{ address.street_address }}, {{ address.city }}, {{ address.state }}</p>
+                <p>{{ address.country }}</p>
+                <p>{{ address.pin_code }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Order Items
+            </h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Size</th>
+                        <th>Color</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr>
+                        <td>
+                            {% with item.product_variant.product.product_images.first as image %}
+                                {% if image %}
+                                    <img src="{{ image.image_url }}" alt="{{ item.product_variant.product.title }}" style="width: 50px; height: 50px; border-radius: 4px;">
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ item.product_variant.product.title }}</td>
+                        <td> {{ item.product_variant.size }}</td>
+                        <td> {{ item.product_variant.color }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit_price|floatformat:2 }}</td>
+                        <td>{{ item.tax }}</td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                    Payment Information
+                </h2>
+                <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                <p><strong>Payment Status:</strong> {{ order.payment_status }}</p>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    Order Summary
+                </h2>
+                <div class="summary-item">
+                    <span>Subtotal</span>
+                    <span>{{sub_total}}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Discount</span>
+                    <span>{{discount}}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Shipping</span>
+                    <span>{{shipping_fee}}</span>
+                </div>
+                <div class="summary-item total">
+                    <span>Total</span>
+                    <span>{{order.total_amount}}</span>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="footer">
+            
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
+    
+{% block scripts %}{% endblock %}

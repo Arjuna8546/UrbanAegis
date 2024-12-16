@@ -1,0 +1,126 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+{% block breadcrum %}
+<nav>
+    <a href="{% url 'home' %}">Home</a> /
+    <a href="{% url 'account' %}">My Account</a> /
+    <span>Return Orders</span>
+</nav>
+{% endblock breadcrum %}
+
+{% block body %}
+<div class="return-orders-container">
+    <div class="account-content">
+        <div class="account-header">
+            <h2>Return Orders</h2>
+        </div>
+        
+        <div class="orders-list">
+            {% if return_orders %}
+                {% for order in return_orders %}
+                <div class="order-card-custom">
+                    <div class="order-header-custom">
+                        <div class="order-info">
+                            <div class="order-main-info">
+                                <div class="order-header-left">
+                                    <div class="order-id-container">
+                                        <span class="order-id">Order ID: {{ order.order.order_id }}</span>
+                                    </div>
+                                    <div class="order-status-container">
+                                        <div class="order-status {{ order.status|lower }}">
+                                            {{ order.status }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="order-date-container">
+                                    <span class="order-date">Requested on: {{ order.created_at|date:"d M Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="return-reason-container">
+                        <div class="return-reason">
+                            <h4>Return Reason:</h4>
+                            <p>{{ order.reason }}</p>
+                        </div>
+                    </div>
+                    <div class="order-details">
+                        <div class="returned-item">
+                            <div class="item-image">
+                                {% if order.orderItem.product_variant.product.product_images.exists %}
+                                    <img src="{{ order.orderItem.product_variant.product.product_images.first.image_url }}" 
+                                         alt="{{ order.orderItem.product_variant.product.title }}">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder.png' %}" alt="Product Image">
+                                {% endif %}
+                            </div>
+                            <div class="item-info-container">
+                                <h3 class="product-title">{{ order.orderItem.product_variant.product.title }}</h3>
+                                <div class="product-meta">
+                                    <span class="meta-item">Size: {{ order.orderItem.product_variant.size }}</span>
+                                    <span class="meta-divider">|</span>
+                                    <span class="meta-item">Color: {{ order.orderItem.product_variant.color }}</span>
+                                    <span class="meta-divider">|</span>
+                                    <span class="meta-item">Qty: {{ order.orderItem.quantity }}</span>
+                                </div>
+                            </div>
+                            <div class="price-section">
+                                <span class="price-tag">₹{{ order.orderItem.total_price }}</span>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="return-status-timeline">
+                        <div class="timeline-step {% if order.status == 'pending' or order.status == 'approved' or order.status == 'completed' %}active{% endif %}">
+                            <i class="fas fa-box"></i>
+                            <span>Return Requested</span>
+                        </div>
+                        <div class="timeline-step {% if order.status == 'approved' or order.status == 'completed' %}active{% endif %}">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Return Approved</span>
+                        </div>
+                        <div class="timeline-step {% if order.status == 'completed' %}active{% endif %}">
+                            <i class="fas fa-undo-alt"></i>
+                            <span>Return Completed</span>
+                        </div>
+                        <div class="timeline-step {% if order.status == 'rejected' %}active{% endif %}">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Return Rejected</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-orders">
+                    <i class="fas fa-box-open"></i>
+                    <p>No return orders found</p>
+                </div>
+            {% endif %}
+        </div>
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if has_previous %}
+                <a href="?page=1" class="page-link">&laquo; First</a>
+                <a href="?page={{ previous_page_number }}" class="page-link">&lsaquo; Previous</a>
+            {% endif %}
+
+            {% for page_number in page_range %}
+                {% if page_number == page_obj.number %}
+                    <span class="page-link current">{{ page_number }}</span>
+                {% elif page_number == '...' %}
+                    <span class="page-link disabled">...</span>
+                {% else %}
+                    <a href="?page={{ page_number }}" class="page-link">{{ page_number }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if has_next %}
+                <a href="?page={{ next_page_number }}" class="page-link">Next &rsaquo;</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock body %}

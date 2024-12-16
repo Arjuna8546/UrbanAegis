@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - URBAN AEGIS</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column; /* Ensure the sidebar and header layout is vertical */
+            height: 100vh; /* Full viewport height */
+            overflow: hidden; /
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #eee;
+            position: fixed; /* Make the sidebar sticky */
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto; /* Enable scrolling for the sidebar if content exceeds height */
+            z-index: 100; /* Ensure it stays on top */
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .nav-item.active {
+            background: #f0f0f0;
+            color: #000;
+        }
+        
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 250px; /* Offset for sidebar width */
+            margin-top: 60px; /* Offset for header height */
+            overflow: auto; /* Allow scrolling for main content */
+        }
+        
+        .header {
+            background: #808080;
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed; /* Make the header sticky */
+            top: 0;
+            right: 0;
+            left: 250px; /* Offset to align with the sidebar width */
+            z-index: 100; /* Ensure it stays on top */
+            height: 60px; /* Fixed height for consistency */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .breadcrumb {
+            color: #666;
+            padding: 20px 0;
+            margin-top: 20px;
+        }
+        
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222.2 84% 4.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96.1%;
+            --secondary-foreground: 222.2 47.4% 11.2%;
+            --muted: 210 40% 96.1%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96.1%;
+            --accent-foreground: 222.2 47.4% 11.2%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 222.2 84% 4.9%;
+            --radius: 0.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: hsl(var(--card));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .card-content {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .chart {
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .select {
+            padding: 0.5rem 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 300px;
+            background-color: hsl(var(--muted));
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: hsl(var(--muted-foreground));
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            font-weight: 600;
+            color: hsl(var(--muted-foreground));
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: hsl(var(--muted));
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: hsl(142.1 76.2% 36.3%);
+            color: hsl(355.7 100% 97.3%);
+        }
+
+        .badge-warning {
+            background-color: hsl(48 96.5% 53.3%);
+            color: hsl(355.7 100% 97.3%);
+        }
+
+        .badge-default {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'product' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Products
+            </a>
+            <a href="{% url 'detailorder' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Orders
+            </a>
+            <a href="{% url 'coustomers' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Customers
+            </a>
+            <a href="{% url 'salesreport' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+                Sales Report
+            </a>
+            <a href="{% url 'offer_list' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                </svg>
+                Offers
+            </a>
+            <a href="{% url 'admin-coupons' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                </svg>
+                Coupon
+            </a>
+            
+            <a href="{% url 'categorie' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                Category
+            </a>
+            <a href="{% url 'adminorderreturnlist' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+                </svg>
+                Return
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="header">
+            <div class="logo">URBAN AEGIS</div>
+            <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+        </header>
+
+        <div class="breadcrumb">
+            Admin > Dashboard
+        </div>
+
+        <div class="stats">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Total Sales</h2>
+                </div>
+                <div class="card-content">{{total_sales}}</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Total Orders</h2>
+                </div>
+                <div class="card-content">{{total_orders}}</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Best Selling Product</h2>
+                </div>
+                <div class="card-content">{{best_selling_product}}</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Best Selling Category</h2>
+                </div>
+                <div class="card-content">{{best_selling_category}}</div>
+            </div>
+        </div>
+
+        <div class="card chart">
+            <div class="chart-header">
+                <h2 class="card-title">Sales & Orders Overview</h2>
+                <select class="select" id="filterSelect">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 50px; flex-direction: row;">
+            <div class="chart-container" style="position: relative; height: 400px; width: 120%;">
+                <canvas id="salesOrdersChart"></canvas>
+            </div>
+            <div class="chart-container" style="position: relative; height: 250px; width: 80%; margin-top: 30px;">
+                
+                <canvas id="paymentMethodsChart"></canvas>
+            </div>
+        </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Orders</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>{{order.order_id}}</td>
+                        <td>{{order.customer_name}}</td>
+                        <td>{{order.total_amount}}</td>
+                        <td>{{order.created_at|date:"Y-m-d"}}</td>
+                        <td>
+                            {% if order.status_of_order == "Delivered" %}
+                                <span class="badge badge-success">{{ order.status_of_order }}</span>
+                            {% elif order.status_of_order == "pending" %}
+                                <span class="badge badge-warning">{{ order.status_of_order }}</span>
+                            {% else %}
+                                <span class="badge badge-default">{{ order.status_of_order }}</span>
+                            {% endif %}
+                        </td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}", // Display the actual message
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the center
+                style: {
+                    background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                    color: "#fff", // Default white text for all messages
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                }
+            }).showToast();
+        {% endfor %}
+    </script>
+{% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const filterSelect = document.getElementById("filterSelect");
+            const chartCanvas = document.getElementById("salesOrdersChart").getContext("2d");
+            let salesOrdersChart;
+        
+            function fetchAndRenderChart(filter) {
+                fetch(`/dashboard/get-order-data/?filter=${filter}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (salesOrdersChart) {
+                            salesOrdersChart.destroy(); // Destroy existing chart before re-rendering
+                        }
+                        renderChart(data.labels, data.totals, data.orders_count);
+                    })
+                    .catch(error => console.error("Error fetching chart data:", error));
+            }
+        
+            function renderChart(labels, salesData, ordersData) {
+                const gradientSales = chartCanvas.createLinearGradient(0, 0, 0, 400);
+                gradientSales.addColorStop(0, "rgba(75, 192, 192, 0.5)");
+                gradientSales.addColorStop(1, "rgba(75, 192, 192, 0.1)");
+        
+                const gradientOrders = chartCanvas.createLinearGradient(0, 0, 0, 400);
+                gradientOrders.addColorStop(0, "rgba(255, 99, 132, 0.5)");
+                gradientOrders.addColorStop(1, "rgba(255, 99, 132, 0.1)");
+        
+                salesOrdersChart = new Chart(chartCanvas, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "Sales",
+                                data: salesData,
+                                backgroundColor: gradientSales,
+                                borderColor: "rgba(75, 192, 192, 1)",
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                            },
+                            {
+                                label: "Orders",
+                                data: ordersData,
+                                backgroundColor: gradientOrders,
+                                borderColor: "rgba(255, 99, 132, 1)",
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: "top",
+                            },
+                            tooltip: {
+                                mode: "index",
+                                intersect: false,
+                            },
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date",
+                                    color: "#666",
+                                },
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: "Value",
+                                    color: "#666",
+                                },
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                });
+            }
+        
+            // Initial chart load with default filter
+            fetchAndRenderChart(filterSelect.value);
+        
+            // Update chart on filter change
+            filterSelect.addEventListener("change", function () {
+                fetchAndRenderChart(filterSelect.value);
+            });
+        });
+        fetch('/dashboard/get_payment_methods/')
+        .then(response => response.json())
+        .then(data => {
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            const ctx = document.getElementById('paymentMethodsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                        ],
+                        borderWidth: 1,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                },
+            });
+        });
+
+      </script>
+</body>
+</html>

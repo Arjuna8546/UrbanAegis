@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - URBAN AEGIS</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background: #f5f5f5;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #eee;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f0f0f0;
+        }
+
+        .nav-item.active {
+            background: #f0f0f0;
+            color: #000;
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #808080;
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            right: 0;
+            left: 250px;
+            z-index: 100;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px 16px;
+        }
+
+        .breadcrumb {
+            padding: 20px;
+            color: #666;
+        }
+
+        .content {
+            padding: 0 20px 20px;
+        }
+
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-product-btn {
+            text-decoration: none;
+            background: #000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 250px;
+        }
+
+        .products-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f8f8;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .product-image {
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .stock-status {
+            color: #22c55e;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            padding: 4px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-numbers button {
+            padding: 6px 12px;
+            border: 1px solid #eee;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .page-numbers button:hover {
+            background: #f5f5f5;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: bold;
+        }
+        .stock-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .in-stock {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .out-of-stock {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .variants {
+            display: none;
+            margin-top: 12px;
+        }
+        .variant {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .variant-image {
+            width: 50px;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .product-row {
+            cursor: pointer;
+        }
+        .product-row:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown-icon::after {
+            content: '▼';
+            display: inline-block;
+            margin-left: 5px;
+            transition: transform 0.3s ease;
+        }
+        .product-row.active .dropdown-icon::after {
+            transform: rotate(180deg);
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            margin: 5px;
+        }
+        .btn-icon:hover {
+            transform: translateY(-2px);
+        }
+        .btn-icon:active {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            background-color: #12AD2B;
+        }
+        .btn-primary:hover {
+            background-color: #61b33b;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .btn-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .alert-messages {
+            margin: 20px 0;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 600px;
+            z-index: 1000;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px); /* Adds blur effect to background */
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        
+        .alert.success {
+            background: rgba(76, 175, 80, 0.6); /* Green with opacity */
+        }
+        
+        .alert.warning {
+            background: rgba(255, 193, 7, 0.6); /* Yellow with opacity */
+            color: #333;
+            
+        }
+        
+        .alert.error {
+            background: rgba(244, 67, 54, 0.6); /* Red with opacity */
+            
+        }
+        
+        .alert .close-btn {
+            cursor: pointer;
+            font-size: 18px;
+            color: #fff;
+            background: none;
+            border: none;
+            margin-left: 15px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .pagination .current {
+            background-color: #000;
+            color: white;
+            border-color: #000;
+        }
+        
+        .pagination .disabled {
+            color: #999;
+            pointer-events: none;
+        }
+        .row-dark {
+    background-color: #f2f2f2; /* Light gray background for darker appearance */
+    color: #888; /* Muted text color for better contrast */
+}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'product' %}" class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Products
+            </a>
+            <a href="{% url 'detailorder' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Orders
+            </a>
+            <a href="{% url 'coustomers' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Customers
+            </a>
+            <a href="{% url 'salesreport' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+                Sales Report
+            </a>
+            <a href="{% url 'offer_list' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                </svg>
+                Offers
+            </a>
+            <a href="{% url 'admin-coupons' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                </svg>
+                Coupon
+            </a>
+            
+            <a href="{% url 'categorie' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                Category
+            </a>
+            <a href="{% url 'adminorderreturnlist' %}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+                </svg>
+                Return
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="header">
+            <div class="logo">URBAN AEGIS</div>
+            <a href="{% url 'admin_logout' %}" class="logout-btn">LOGOUT</a>
+        </header>
+    
+        <div class="breadcrumb">
+            Admin > Dashboard
+        </div>
+           <!-- Alert Messages Section -->
+
+        
+        <div class="content">
+            <div class="products-header">
+                <h1>Products</h1>
+                <div style="display: flex; gap: 16px;">
+                    <a class="add-product-btn" href="{% url 'add_product' %}">Add product</a>
+                    
+                    <form method="get" action="{% url 'product' %}">
+                        <input type="text" class="search-input" name="q" placeholder="Search Products" value="{{ search_query }}" />
+                        <button type="submit" class="add-product-btn">Search</button>
+                    </form>
+                </div>
+            </div>
+    
+            <div class="products-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>SKU</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Stock Status</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for variant in variants %}
+                        <tr  class="{% if not variant.is_delete %}row-dark{% endif %}">
+                            <td>{% if variant.product.product_images.exists %}
+                                <!-- Display the first image associated with the product -->
+                                <img src="{{ variant.product.product_images.first.image_url }}" alt="{{ variant.product.title }}" class="product-image">
+                            {% else %}
+                                <span>No Image</span>
+                            {% endif %}
+                            </td>
+                            
+                            <td>{{ variant.product.title }}</td>
+                            <td>{{ variant.sku }}</td> <!-- SKU from ProductVariant -->
+                            <td>{{ variant.color }}</td>
+                            <td>{{ variant.size }}</td>
+                            <td>₹{{ variant.price }}</td>
+                            <td>{{ variant.available_quantity }}</td>
+                            <td>
+                                <span class="stock-status {% if variant.stock_status %}in-stock{% else %}out-of-stock{% endif %}">
+                                    {% if variant.stock_status %}In Stock{% else %}Out of Stock{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ variant.product.category.name }}</td>
+                            <td>
+                                {% if not variant.is_delete  %}
+                                <form action="{% url 'update_variant' variant.id %}" method="get" style="display:inline;">
+                                    {% csrf_token %}
+                                    <a href="{% url 'update_variant' variant.id %}" class="btn-icon btn-primary" aria-label="Update">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                    </a>
+                                </form>
+                                {% else %}
+                                <!-- Update and Delete Buttons -->
+                                <form action="{% url 'update_variant' variant.id %}" method="get" style="display:inline;">
+                                    {% csrf_token %}
+                                    <a href="{% url 'update_variant' variant.id %}" class="btn-icon btn-primary" aria-label="Update">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                    </a>
+                                </form>
+    
+                                <form action="{% url 'choose_delete_product_or_variant' variant.id %}" method="get" style="display:inline;">
+                                    {% csrf_token %}
+                                    <a href="{% url 'choose_delete_product_or_variant' variant.id %}" class="btn-icon btn-danger" aria-label="Delete">
+                                        <svg viewBox="0 0 24 24">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                    </a>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+    
+                {% if is_paginated %}
+                <div class="pagination">
+                    {% if has_previous %}
+                        <a href="?page=1">&laquo; First</a>
+                        <a href="?page={{ previous_page_number }}">&lsaquo; Previous</a>
+                    {% endif %}
+                    
+                    {% for page_number in page_range %}
+                        {% if page_number == page_obj.number %}
+                            <span class="current">{{ page_number }}</span>
+                        {% elif page_number == '...' %}
+                            <span class="disabled">...</span>
+                        {% else %}
+                            <a href="?page={{ page_number }}">{{ page_number }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if has_next %}
+                        <a href="?page={{ next_page_number }}">Next &rsaquo;</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}", // Display the actual message
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the center
+                style: {
+                    background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                    color: "#fff", // Default white text for all messages
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                }
+            }).showToast();
+        {% endfor %}
+    </script>
+{% endif %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productRows = document.querySelectorAll('.product-row');
+    
+            productRows.forEach(row => {
+                row.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-product-id');
+                    const variantsContainer = document.getElementById(`variants-${productId}`);
+                    
+                    // Check if variantsContainer exists and toggle display
+                    if (variantsContainer) {
+                        this.classList.toggle('active');
+                        
+                        // Hide all other variant containers before toggling the current one
+                        document.querySelectorAll('.variants').forEach(container => {
+                            if (container !== variantsContainer) {
+                                container.style.display = 'none';
+                            }
+                        });
+    
+                        // Toggle the selected product's variants display
+                        variantsContainer.style.display = 
+                            variantsContainer.style.display === 'block' ? 'none' : 'block';
+                    }
+                });
+            });
+        });
+        
+    </script>
+    
+</body>
+</html>

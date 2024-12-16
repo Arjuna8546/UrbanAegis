@@ -1,0 +1,207 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+{% block breadcrum %}{% endblock breadcrum %}
+{% block body %}
+
+<div class="wallet-container">
+    
+    {% if not wallet.is_active %}
+    <div class="wallet-activation">
+        <div class="activation-content">
+            <h2>Activate Your Wallet</h2>
+            <p>Activate your wallet to start making seamless transactions</p>
+            <form method="post" action="{% url 'activate' %}">
+                {% csrf_token %}
+                <button type="submit" class="activate-wallet-btn">
+                    <i class="fas fa-wallet"></i> Activate Wallet
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="wallet-section">
+        <form method="post" action="{% url 'deactivate' %}" class="deactivate-form">
+            {% csrf_token %}
+            <button type="submit" class="deactivate-wallet-btn">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </form>
+        <div class="wallet-header">
+            <h1>My Wallet</h1>
+            
+            <div class="wallet-balance">
+                <span class="balance-amount">₹{{ wallet.balance|default:"0.00" }}</span>
+                <span class="balance-label">Available Balance</span>
+            </div>
+            <button class="add-money-btn" onclick="openAddMoneyModal()">
+                <i class="fas fa-plus"></i> Add Money
+            </button>
+            
+        </div>
+
+        <div class="transaction-history">
+            <h2>Transaction History</h2>
+            <div class="transaction-list">
+                {% if transactions %}
+                    {% for transaction in transactions %}
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-main">
+                                    <span class="transaction-type">{{ transaction.get_transaction_type_display }}</span>
+                                    <span class="transaction-amount {% if transaction.transaction_type == 'CREDIT' %}credit{% else %}debit{% endif %}">
+                                        {% if transaction.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}
+                                        ₹{{ transaction.amount }}
+                                    </span>
+                                </div>
+                                <div class="transaction-sub">
+                                    <span class="transaction-desc">{{ transaction.description }}</span>
+                                    <span class="transaction-date">{{ transaction.created_at|date:"d M Y, h:i A" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-transactions">
+                        <p>No transactions yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Money Modal -->
+<div id="addMoneyModal" class="modal">
+    <div class="modal-content1">
+        <div class="modal-header">
+            <h2>Add Money to Wallet</h2>
+            <span class="close" onclick="closeAddMoneyModal()">&times;</span>
+        </div>
+        <form id="addMoneyForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="amount">Amount (₹)</label>
+                <input type="number" id="amount" name="amount" min="1" step="1" required>
+            </div>
+            <button type="button" id="addMoneyButton" class="add-money-submit">Add Money</button>
+        </form>
+    </div>
+</div>
+<script>
+    function openAddMoneyModal() {
+        document.getElementById('addMoneyModal').style.display = 'block';
+    }
+    
+    function closeAddMoneyModal() {
+        document.getElementById('addMoneyModal').style.display = 'none';
+    }
+    
+    window.onclick = function(event) {
+        var modal = document.getElementById('addMoneyModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    document.getElementById('addMoneyButton').onclick = function (e) {
+        e.preventDefault();
+    
+        const amount = document.getElementById('amount').value;
+        if (!amount || amount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+    
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        // Step 1: Create Razorpay Order
+        fetch("{% url 'addmoney' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({ amount: amount })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log("Razorpay Order Initialized:", data);
+    
+                // Step 2: Open Razorpay Payment Modal
+                const options = {
+                    key: data.razorpay_key,
+                    amount: data.amount * 100, // Convert to paise
+                    currency: "INR",
+                    name: "Urban Aegis Wallet",
+                    description: "Add Money to Wallet",
+                    order_id: data.razorpay_order_id,
+                    handler: function (response) {
+                        console.log("Payment Successful:", response);
+    
+                        // Step 3: Verify the Payment
+                        fetch("{% url 'verify_payment_wallet' %}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": csrfToken
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                amount:data.amount
+                            })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error("Verification failed");
+                            }
+                            return response.json();
+                        })
+                        .then(verificationData => {
+                            if (verificationData.success) {
+
+                                // Redirect or update UI as needed
+                                window.location.reload();
+                            } else {
+                                window.location.reload();
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error verifying payment:", error);
+                            
+                        });
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            
+                        }
+                    },
+                    prefill: {
+                        "name": "{{ user.first_name }} {{ user.last_name }}",
+                        "email": "{{ user.email }}"
+                    }
+                };
+    
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error("Error initializing Razorpay order:", error);
+            ;
+        });
+    };
+    
+    </script>
+{% endblock body %}

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .company-info h1 {
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .company-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .invoice-details {
+            text-align: right;
+        }
+
+        .invoice-details h2 {
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        #barcode-container img {
+            width: 150px;
+            height: auto;
+        }
+
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .info-section div {
+            flex: 1;
+        }
+
+        .info-section h3 {
+            color: #1a1a1a;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .order-items table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .order-items th,
+        .order-items td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-items th {
+            text-align: left;
+            background-color: #f8f9fa;
+        }
+
+        .order-items td {
+            text-align: left;
+        }
+
+        .order-summary {
+           
+            width: 590px;
+        }
+
+        .order-summary div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-summary div:last-child {
+            font-weight: bold;
+        }
+
+        .invoice-footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #666;
+        }
+
+        .invoice-footer p {
+            margin: 5px 0;
+        }
+
+        .invoice-footer .details {
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .header-footer {
+            text-align: center;
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Company Header -->
+    <div class="header-footer">
+        <h1>URBAN AEGIS</h1>
+        <p>Fashion & Lifestyle</p>
+    </div>
+
+    <!-- Invoice Container -->
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1>URBAN AEGIS</h1>
+                <p>Fashion & Lifestyle</p>
+            </div>
+            <div class="invoice-details">
+                <h2>INVOICE</h2>
+                <p>Date: {{ order.created_at|date:"d-m-Y" }}</p>
+                <p>Invoice #: {{ order.uuid }}</p>
+                <div id="barcode-container">
+                    <img src="data:image/png;base64,{{ barcode_image }}" alt="Order Barcode">
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer & Shipping Info -->
+        <div class="info-section">
+            <div class="customer-info">
+                <h3>Customer Information</h3>
+                <p><strong>Name:</strong> {{ order.customer_name }}</p>
+                <p><strong>Email:</strong> {{ order.customer_email }}</p>
+                <p><strong>Phone:</strong> {{ order.customer_phone }}</p>
+            </div>
+            <div class="shipping-info">
+                <h3>Shipping Address</h3>
+                <p>{{ order.shipping_street }}</p>
+                <p>{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                <p>{{ order.shipping_country }} - {{ order.shipping_pincode }}</p>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+            <h3>Order Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.order_items.all %}
+                    <tr>
+                        <td>
+                            {{ item.product_variant.product.title }}
+                            <br>
+                            <small>Size: {{ item.product_variant.size }}, Color: {{ item.product_variant.color }}</small>
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.unit_price|floatformat:2 }}</td>
+                        <td>₹{{ item.tax|floatformat:2 }}</td>
+                        <td>₹{{ item.total_price|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <br>
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <div>
+                <span>Subtotal:</span>
+                <span>₹{{ order.subtotal|floatformat:2 }}</span>
+            </div>
+            <div>
+                <span>Discount:</span>
+                <span>₹{{ order.discount|floatformat:2 }}</span>
+            </div>
+            <div>
+                <span>Total:</span>
+                <span>₹{{ order.total_amount|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <p>Thank you for shopping with Urban Aegis!</p>
+            <p>For any queries, please contact support@urbanaegis.com</p>
+            <div class="details">
+                <p>Payment Status: {{ order.payment_status|title }}</p>
+                <p>Payment Method: {{ order.payment_method|title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Footer -->
+    <div class="header-footer">
+        <p>&copy; {{ "now"|date:"Y" }} Urban Aegis. All Rights Reserved.</p>
+    </div>
+</body>
+</html>
+

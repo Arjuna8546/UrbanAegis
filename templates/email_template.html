@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .email-header p {
+            margin: 10px 0 0;
+            font-size: 18px;
+        }
+        .email-body {
+            padding: 30px;
+            background-color: #fff;
+        }
+        .offer-box {
+            background-color: #fff8f0;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .special-offer {
+            color: #ff6b6b;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .timer {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            color: #fff;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+        .benefits {
+            margin: 20px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .benefits li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .benefits li:before {
+            content: "✓";
+            color: #4CAF50;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-header">
+            <h1>🎁 Welcome Back, {{ user.first_name }}!</h1>
+            <p>We've Missed You</p>
+        </div>
+        <div class="email-body">
+            <p>Hey {{ user.first_name }},</p>
+            <p>We noticed you haven't visited us in a while, and we want to make your return special!</p>
+            
+            <div class="offer-box">
+                <div class="special-offer">🌟 EXCLUSIVE COMEBACK OFFER</div>
+                <p>Get <strong>25% OFF</strong> on your next purchase!</p>
+                <div class="timer">⏰ Limited Time Offer - 48 Hours Only!</div>
+            </div>
+
+            <h3>What you've been missing:</h3>
+            <ul class="benefits">
+                <li>New exciting products added to our collection</li>
+                <li>Exclusive member-only deals</li>
+                <li>Free shipping on orders over $50</li>
+                <li>Special seasonal discounts</li>
+            </ul>
+
+            <p>Don't miss out on these amazing offers. Come back and explore what's new!</p>
+            
+            <center>
+                <a href="#" class="btn">
+                    CLAIM YOUR 25% OFF NOW! 🎉
+                </a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>This offer is exclusively for {{ user.first_name }} {{ user.last_name }}</p>
+            <p>If you wish to unsubscribe, <a href="#">click here</a></p>
+        </div>
+    </div>
+</body>
+</html>

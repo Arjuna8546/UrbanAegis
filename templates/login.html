@@ -1,0 +1,532 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - URBAN AEGIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .announcement-bar {
+            background: #000;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .header {
+            background: #808080;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .main-content {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .password-group {
+            position: relative;
+        }
+
+        .forgot-password {
+            position: absolute;
+            right: 0;
+            top: -20px;
+            font-size: 12px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .login-button {
+            background: #000;
+            color: white;
+            padding: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px;
+            margin-top: 100px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .footer-logo img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-links a {
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .copyright {
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .google-login-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            color: #757575;
+            border: 1px solid #ddd;
+            padding: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .google-login-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .or-divider::before {
+            margin-right: .5em;
+        }
+
+        .or-divider::after {
+            margin-left: .5em;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .general-error {
+            text-align: center;
+            margin-top: 10px;
+        }
+        /* Forgot Password Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #000;
+            margin: 0;
+        }
+
+        .modal-subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .reset-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .reset-button {
+            background: #000;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .reset-button:hover {
+            background: #333;
+        }
+
+        .modal-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .modal-message.success {
+            background-color: #f0f7f0;
+            color: #22c55e;
+        }
+
+        .modal-message.error {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+    <div class="announcement-bar">
+        FREE SHIPPING ON ORDERS ABOVE 75.00
+    </div>
+    
+    <header class="header">
+        <div class="logo">URBAN AEGIS</div>
+        <nav class="nav-links">
+            <a href="{% url 'home' %}">home</a>
+            <a href="#">Best seller</a>
+            <a href="#">Shop</a>
+            <a href="#">Contact</a>
+        </nav>
+        <div class="header-right">
+            <span>Search</span>
+            <span>Cart</span>
+        </div>
+    </header>
+    
+
+    <main class="main-content">
+        <form class="login-form" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <h1 class="login-title">LOGIN</h1>
+            
+            <a href="{% url 'social:begin' 'google-oauth2' %}"type="button" class="google-login-button">
+                <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                </svg>
+                Sign in with Google
+            </a>
+
+            <div class="or-divider">or</div>
+            {% if errors.general %}
+                <p class="error-message general-error">{{ errors.general }}</p>
+            {% endif %}
+            
+            <div class="form-group">
+                <input type="email" placeholder="E-mail" name="email" value="{{ request.POST.email }}">
+                <!-- Display error message for the email field if exists -->
+                {% if errors.email %}
+                    <p class="error-message">{{ errors.email }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="form-group password-group">
+                <a href="#" class="forgot-password" onclick="openForgotPasswordModal(event)">Forgot your password?</a>
+                <input type="password" placeholder="Password" name="password">
+                <!-- Display error message for the password field if exists -->
+                {% if errors.password %}
+                    <p class="error-message">{{ errors.password }}</p>
+                {% endif %}
+            </div>
+        
+            <button type="submit" class="login-button">LOGIN</button>
+            
+            <p class="signup-link">
+                Don't have an account? <a href="{% url 'register' %}">Sign up</a>
+            </p>
+        
+            <!-- Display a general error message if exists -->
+            
+        </form>
+        
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <!-- Replace with actual logo image -->
+                    <div style="font-size: 24px; font-weight: bold;">URBAN AEGIS</div>
+                </div>
+                <div class="copyright">© 2024 - URBAN AEGIS</div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>HELP</h3>
+                <div class="footer-links">
+                    <a href="#">Shipping</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Returns & Exchange Policy</a>
+                    <a href="#">Exchange request</a>
+                    <a href="#">Warranty</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>MENU</h3>
+                <div class="footer-links">
+                    <a href="#">About me</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Forgot Password Modal -->
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <button type="button" class="close-modal" onclick="closeForgotPasswordModal()">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">Reset Password</h2>
+                <p class="modal-subtitle">Enter your email address and we'll send you instructions to reset your password.</p>
+            </div>
+            <form id="resetForm" class="reset-form" onsubmit="handleResetPassword(event)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="email" name="email" id="resetEmail" placeholder="Enter your email address" required>
+                    <div class="error-message" id="resetEmailError" style="display: none; color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;"></div>
+                </div>
+                <button type="submit" id ="reset-button" class="reset-button">Send Reset Link</button>
+            </form>
+            <div id="modalMessage" class="modal-message"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+        {% if messages %}
+    <script>
+        {% for message in messages %}
+            Toastify({
+                text: "{{ message }}", // Display the actual message
+                duration: 3000, // Show for 3 seconds
+                close: true, // Add a close button
+                gravity: "top", // Show the toast at the top
+                position: "center", // Align toast to the center
+                style: {
+                    background: "{% if message.tags == 'error' %}linear-gradient(to right, rgba(255, 3, 3), rgba(255, 87, 87)){% elif message.tags == 'success' %}linear-gradient(to right, rgba(40, 167, 69), rgba(92, 216, 93)){% elif message.tags == 'warning' %}linear-gradient(to right, rgba(255, 247, 28), rgba(255, 223, 87)){% else %}linear-gradient(to right, rgba(23, 163, 184), rgba(87, 197, 220)){% endif %}",
+                    color: "#fff", // Default white text for all messages
+                    borderRadius: "8px", // Rounded corners
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Subtle shadow
+                }
+            }).showToast();
+        {% endfor %}
+    </script>
+{% endif %}
+<script>
+        function openForgotPasswordModal(event) {
+            event.preventDefault();
+            document.getElementById('forgotPasswordModal').style.display = 'block';
+            document.getElementById('resetEmail').focus();
+            // Clear any previous messages
+            document.getElementById('resetEmailError').style.display = 'none';
+            document.getElementById('modalMessage').style.display = 'none';
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('resetForm').reset();
+            document.getElementById('resetEmailError').style.display = 'none';
+            document.getElementById('modalMessage').style.display = 'none';
+        }
+    
+
+        function handleResetPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const errorDiv = document.getElementById('resetEmailError');
+            const messageDiv = document.getElementById('modalMessage');
+            const form = document.getElementById('resetForm');
+            
+            // Clear previous messages
+            errorDiv.style.display = 'none';
+            messageDiv.style.display = 'none';
+
+            // Send POST request to your reset password endpoint
+            fetch('{% url 'forgetpassword' %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to verify OTP page
+                    window.location.href = data.redirect_url;
+                } else {
+                    errorDiv.textContent = data.message;
+                    errorDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (event.target === modal) {
+                closeForgotPasswordModal();
+            }
+        }
+    </script>
+</body>
+</html>
+

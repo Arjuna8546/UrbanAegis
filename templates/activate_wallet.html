@@ -1,0 +1,22 @@
+{% extends "account_base.html" %}
+{% load static %}
+
+{% block breadcrum %}{% endblock breadcrum %}
+{% block body %}
+
+<div class="wallet-container">
+    
+    <div class="wallet-activation">
+        <div class="activation-content">
+            <h2>Activate Your Wallet</h2>
+            <p>Activate your wallet to start making seamless transactions</p>
+            <form method="post" action="{% url 'activate' %}">
+                {% csrf_token %}
+                <button type="submit" class="activate-wallet-btn">
+                    <i class="fas fa-wallet"></i> Activate Wallet
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock body %}
