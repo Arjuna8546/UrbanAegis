@@ -30,7 +30,7 @@
                 <div class="card-header">
                     <i class="fas fa-edit"></i>
                     <span>Offer Details</span>
-                </div>
+                </div>  
                 <div class="card-body">
                     <form method="post" action="{% if object %}{% url 'edit_offer' object.pk %}{% else %}{% url 'add_offer' %}{% endif %}">
                         {% csrf_token %}
