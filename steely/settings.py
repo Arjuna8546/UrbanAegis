@@ -34,7 +34,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.urbanaegis.shop', 'urbanaegis.shop','13.60.52.206']
 
 
 # Application definition
@@ -157,6 +157,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Assuming your 'static' folder is at the project root level
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_REDIS_URL', 'redis://localhost:6379')
 
